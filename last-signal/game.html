@@ -382,6 +382,30 @@ function playSnd(name, { vol = .6, loop = false, dur = 0, offset = 0, fade = .4 
 const LOOPS = {};
 function loopOn(name, opts) { if (!LOOPS[name]) LOOPS[name] = playSnd(name, Object.assign({ loop: true }, opts)); }
 function loopOff(name, f) { if (LOOPS[name]) { LOOPS[name].stop(f); LOOPS[name] = null; } }
+/* music: one track at a time, cross-faded; quieter while somebody speaks */
+const MUSIC_VOL = { calm: .28, sad: .32, tense: .3, hope: .26, chase: .3, epic: .3 };
+let mus = { name: '', src: null, g: null }, musDuck = 1;
+function music(name) {
+  if (name === mus.name && (mus.src || !name)) return;
+  const a = AC;
+  if (mus.src) { const o = mus; try { o.g.gain.cancelScheduledValues(a.currentTime); o.g.gain.setValueAtTime(o.g.gain.value, a.currentTime); o.g.gain.linearRampToValueAtTime(0, a.currentTime + 1.5); o.src.stop(a.currentTime + 1.6); } catch (e) {} }
+  mus = { name: name || '', src: null, g: null };
+  if (!a || !name || !sound) return;
+  const start = () => {
+    const b = BUF['music_' + name];
+    if (!b || mus.name !== name || mus.src) return;
+    const src = a.createBufferSource(), g = a.createGain();
+    src.buffer = b; src.loop = true; g.gain.value = 0;
+    src.connect(g).connect(a.destination); src.start();
+    g.gain.linearRampToValueAtTime(MUSIC_VOL[name] * musDuck, a.currentTime + 2);
+    mus.src = src; mus.g = g;
+  };
+  if (BUF['music_' + name]) start(); else (loadSnds() || Promise.resolve()).then(start);
+}
+function duck(v) {
+  musDuck = v;
+  if (mus.g && AC) { const t = AC.currentTime; mus.g.gain.cancelScheduledValues(t); mus.g.gain.setValueAtTime(mus.g.gain.value, t); mus.g.gain.linearRampToValueAtTime(MUSIC_VOL[mus.name] * v, t + .35); }
+}
 /* background sound of the current place */
 let ambName = '';
 function ambience(spec) {
@@ -407,7 +431,7 @@ function noise(d, v = .08, freq = 1500, type = 'lowpass') {
   s.connect(f).connect(g).connect(a.destination); s.start();
 }
 const SFX = {
-  click() { tone(520, .05, 'square', .03); },
+  click() { if (!playSnd('click', { vol: .5 })) tone(520, .05, 'square', .03); },
   ok() { if (!playSnd('correct', { vol: .5 })) { tone(660, .12, 'triangle', .14); tone(990, .2, 'triangle', .14, 0, .1); } },
   bad() { if (!playSnd('wrong', { vol: .45 })) tone(200, .28, 'sawtooth', .08, -80); },
   item() { tone(520, .1, 'triangle', .12); tone(780, .1, 'triangle', .12, 0, .09); tone(1040, .18, 'triangle', .12, 0, .18); },
@@ -433,9 +457,10 @@ function speak(text, o = {}) {
       const u = new SpeechSynthesisUtterance(text);
       u.lang = 'en-US'; u.rate = o.rate || .9; u.pitch = o.pitch || 1;
       const v = voice(o.male); if (v) u.voice = v;
-      u.onend = res; u.onerror = res;
-      speechSynthesis.speak(u);
-      setTimeout(res, 400 + text.length * 110);
+      const done = () => { duck(1); res(); };
+      u.onend = done; u.onerror = done;
+      duck(.2); speechSynthesis.speak(u);
+      setTimeout(done, 400 + text.length * 110);
     } catch (e) { res(); }
   });
 }
@@ -466,7 +491,7 @@ function addStar(n = 1) { S.stars += n; renderHUD(); const s = $('#stars'); s.cl
 function setObj(t) { $('#obj').innerHTML = t ? `<small>Objective</small>${T(t)}` : ''; }
 let toastT;
 function toast(t) { const e = $('#toast'); e.innerHTML = T(t); e.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => e.classList.remove('on'), 2600); }
-$('#bSound').onclick = () => { sound = !sound; $('#bSound').textContent = sound ? '🔊' : '🔈'; if (sound && scene && $('#game').classList.contains('on')) { ambName = ''; ambience(scene.amb); } if (!sound) { Object.keys(LOOPS).forEach(k => loopOff(k, .1)); if (window.speechSynthesis) speechSynthesis.cancel(); } };
+$('#bSound').onclick = () => { sound = !sound; $('#bSound').textContent = sound ? '🔊' : '🔈'; if (sound) { const n = mus.name; mus = { name: '', src: null, g: null }; music(n); } if (sound && scene && $('#game').classList.contains('on')) { ambName = ''; ambience(scene.amb); } if (!sound) { const n = mus.name; music(''); mus.name = n; Object.keys(LOOPS).forEach(k => loopOff(k, .1)); if (window.speechSynthesis) speechSynthesis.cancel(); } };
 
 /* ---------- items ---------- */
 const ITEMS = {
@@ -726,7 +751,7 @@ function speakTask({ title = 'Speaking', line, note, male = true }) {
     if (mic) mic.onclick = async () => {
       if (busyMic) return; busyMic = true; mic.classList.add('rec'); heard.innerHTML = '<span style="color:var(--muted)">Listening… speak now</span>';
       if (window.speechSynthesis) speechSynthesis.cancel();
-      const alts = await listenOnce(); mic.classList.remove('rec'); busyMic = false;
+      duck(0); const alts = await listenOnce(); duck(1); mic.classList.remove('rec'); busyMic = false;
       if (alts === null) { heard.innerHTML = '<span class="bad">The microphone is blocked. Say it out loud and tap “I said it”.</span>'; sk.style.display = ''; return; }
       if (!alts.length) { heard.innerHTML = '<span class="bad">I didn’t hear anything. Try again, a bit louder.</span>'; if (++fails >= 2) sk.style.display = ''; return; }
       const best = alts.map(a => [a, matchScore(T(line), a)]).sort((a, b) => b[1] - a[1])[0];
@@ -767,9 +792,10 @@ function dangerTask({ zombie, who = 'maya', items, time = 14 }) {
     let queue = items.slice(), dist = 1, need = items.length, got = 0, timer = null;
     const missed = new Set(), starred = new Set();
     const setDist = () => { dz.style.height = [360, 470, 590, 700][Math.min(dist, 3)] + 'px'; dz.style.filter = `brightness(${.7 + dist * .08})`; };
-    setDist(); SFX.growl(); loopOn('heartbeat', { vol: .8 });
+    const prevMus = mus.name; music('chase');
+    setDist(); SFX.growl(); loopOn('heartbeat', { vol: .55 });
     function next() {
-      if (got >= need) { clearInterval(timer); box.classList.remove('on'); loopOff('heartbeat', .8); return res(); }
+      if (got >= need) { clearInterval(timer); box.classList.remove('on'); loopOff('heartbeat', .8); music(prevMus); return res(); }
       const it = queue.shift(); let t0 = Date.now(), answered = false;
       dq.innerHTML = `<div id="dprog">${got}/${need}</div><div class="who">${CH[who].n()} shouts:</div><div class="q">${T(it.s).replace('___', '<span class="gap">_____</span>')}</div><div class="opts"></div><div id="dbar"><i></i></div>`;
       const op = $('.opts', dq), bar = $('#dbar i');
@@ -807,7 +833,7 @@ function dangerTask({ zombie, who = 'maya', items, time = 14 }) {
 
 /* ---------- narration screen ---------- */
 async function narration(lines) {
-  ambName = ''; loopOff('amb', 1);
+  ambName = ''; loopOff('amb', 1); music('sad');
   show('narr'); const tx = $('#narr .txt'), scr = $('#narr');
   for (const l of lines) {
     tx.style.opacity = 0; await sleep(250); tx.innerHTML = T(l); tx.style.transition = 'opacity .6s'; tx.style.opacity = 1;
@@ -897,7 +923,7 @@ async function goScene(id) {
     hero = makeActor(A.hero_m_side, 340, st.x, st.y); hero.face = st.face || 1; place(hero);
     pal = S.follow ? makeActor(A[S.follow + '_side'], 330, st.x - 120 * hero.face, st.y - 14) : null;
     if (pal) { pal.face = hero.face; place(pal); }
-    setObj(''); buildSpots(); show('game'); renderHUD(); ambience(scene.amb);
+    setObj(''); buildSpots(); show('game'); renderHUD(); ambience(scene.amb); music(scene.mus || 'tense');
   });
   setBusy(true);
   try { if (scene.enter) await scene.enter(); } finally { vnClose(); setBusy(false); buildSpots(); }
@@ -2069,6 +2095,10 @@ const AMB = {
   radio_station: ['wind', .25], bridge: ['wind', .3], ending: ['helicopter', .35]
 };
 Object.entries(AMB).forEach(([k, v]) => { if (SCENES[k]) SCENES[k].amb = v; });
+const MUS = { ward: 'sad', camp_inside: 'hope', camp_fire: 'hope', plan: 'calm', radio_studio: 'calm', bridge: 'epic', ending: 'hope' };
+Object.entries(MUS).forEach(([k, v]) => { if (SCENES[k]) SCENES[k].mus = v; });
+/* title music starts with the first tap (browsers block sound before that) */
+document.addEventListener('pointerdown', function first() { document.removeEventListener('pointerdown', first); ac(); if ($('#title').classList.contains('on')) music('calm'); });
 
 /* ============================================================
    CHAPTERS
@@ -2187,7 +2217,7 @@ async function startChapter(n) {
 async function chapterEnd(n) {
   const c = CHAPTERS[n], next = CHAPTERS[n + 1];
   S.unlocked = Math.max(S.unlocked || 1, next ? n + 1 : n); save();
-  ambName = ''; loopOff('amb', 2);
+  ambName = ''; loopOff('amb', 2); music(c.final ? 'hope' : 'calm');
   await fade(async () => {
     const e = $('#endScr'); e.style.backgroundImage = `url(${A[c.bg]})`;
     $('.box', e).innerHTML = `<div class="sub">Chapter ${n} complete</div><h2>${c.title}</h2>
