@@ -382,6 +382,14 @@ function playSnd(name, { vol = .6, loop = false, dur = 0, offset = 0, fade = .4 
 const LOOPS = {};
 function loopOn(name, opts) { if (!LOOPS[name]) LOOPS[name] = playSnd(name, Object.assign({ loop: true }, opts)); }
 function loopOff(name, f) { if (LOOPS[name]) { LOOPS[name].stop(f); LOOPS[name] = null; } }
+/* background sound of the current place */
+let ambName = '';
+function ambience(spec) {
+  const [name, vol] = spec || [];
+  if (name === ambName && LOOPS.amb) return;
+  loopOff('amb', 1.2); ambName = name || '';
+  if (name) LOOPS.amb = playSnd(name, { loop: true, vol, offset: Math.random() * 5 });
+}
 function tone(f, d, type = 'sine', v = .12, slide = 0, delay = 0) {
   const a = ac(); if (!a || !sound) return;
   const t = a.currentTime + delay, o = a.createOscillator(), g = a.createGain();
@@ -400,8 +408,8 @@ function noise(d, v = .08, freq = 1500, type = 'lowpass') {
 }
 const SFX = {
   click() { tone(520, .05, 'square', .03); },
-  ok() { tone(660, .12, 'triangle', .14); tone(990, .2, 'triangle', .14, 0, .1); },
-  bad() { tone(200, .28, 'sawtooth', .08, -80); },
+  ok() { if (!playSnd('correct', { vol: .5 })) { tone(660, .12, 'triangle', .14); tone(990, .2, 'triangle', .14, 0, .1); } },
+  bad() { if (!playSnd('wrong', { vol: .45 })) tone(200, .28, 'sawtooth', .08, -80); },
   item() { tone(520, .1, 'triangle', .12); tone(780, .1, 'triangle', .12, 0, .09); tone(1040, .18, 'triangle', .12, 0, .18); },
   growl() { if (!playSnd('zombie', { vol: .8, dur: 3, offset: Math.random() * 4 })) { noise(.9, .3, 260); tone(70, .8, 'sawtooth', .07, -20); } },
   hurt() { tone(90, .25, 'sine', .4); tone(70, .3, 'sine', .3, 0, .22); },
@@ -458,7 +466,7 @@ function addStar(n = 1) { S.stars += n; renderHUD(); const s = $('#stars'); s.cl
 function setObj(t) { $('#obj').innerHTML = t ? `<small>Objective</small>${T(t)}` : ''; }
 let toastT;
 function toast(t) { const e = $('#toast'); e.innerHTML = T(t); e.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => e.classList.remove('on'), 2600); }
-$('#bSound').onclick = () => { sound = !sound; $('#bSound').textContent = sound ? '🔊' : '🔈'; if (!sound) { Object.keys(LOOPS).forEach(k => loopOff(k, .1)); if (window.speechSynthesis) speechSynthesis.cancel(); } };
+$('#bSound').onclick = () => { sound = !sound; $('#bSound').textContent = sound ? '🔊' : '🔈'; if (sound && scene && $('#game').classList.contains('on')) { ambName = ''; ambience(scene.amb); } if (!sound) { Object.keys(LOOPS).forEach(k => loopOff(k, .1)); if (window.speechSynthesis) speechSynthesis.cancel(); } };
 
 /* ---------- items ---------- */
 const ITEMS = {
@@ -799,6 +807,7 @@ function dangerTask({ zombie, who = 'maya', items, time = 14 }) {
 
 /* ---------- narration screen ---------- */
 async function narration(lines) {
+  ambName = ''; loopOff('amb', 1);
   show('narr'); const tx = $('#narr .txt'), scr = $('#narr');
   for (const l of lines) {
     tx.style.opacity = 0; await sleep(250); tx.innerHTML = T(l); tx.style.transition = 'opacity .6s'; tx.style.opacity = 1;
@@ -888,7 +897,7 @@ async function goScene(id) {
     hero = makeActor(A.hero_m_side, 340, st.x, st.y); hero.face = st.face || 1; place(hero);
     pal = S.follow ? makeActor(A[S.follow + '_side'], 330, st.x - 120 * hero.face, st.y - 14) : null;
     if (pal) { pal.face = hero.face; place(pal); }
-    setObj(''); buildSpots(); show('game'); renderHUD();
+    setObj(''); buildSpots(); show('game'); renderHUD(); ambience(scene.amb);
   });
   setBusy(true);
   try { if (scene.enter) await scene.enter(); } finally { vnClose(); setBusy(false); buildSpots(); }
@@ -2055,6 +2064,12 @@ async function endHeli() {
   await chapterEnd(5);
 }
 
+const AMB = {
+  ward: ['wind', .08], street: ['wind', .22], camp_gate: ['wind', .2], camp_fire: ['fire', .55],
+  radio_station: ['wind', .25], bridge: ['wind', .3], ending: ['helicopter', .35]
+};
+Object.entries(AMB).forEach(([k, v]) => { if (SCENES[k]) SCENES[k].amb = v; });
+
 /* ============================================================
    CHAPTERS
    ============================================================ */
@@ -2172,6 +2187,7 @@ async function startChapter(n) {
 async function chapterEnd(n) {
   const c = CHAPTERS[n], next = CHAPTERS[n + 1];
   S.unlocked = Math.max(S.unlocked || 1, next ? n + 1 : n); save();
+  ambName = ''; loopOff('amb', 2);
   await fade(async () => {
     const e = $('#endScr'); e.style.backgroundImage = `url(${A[c.bg]})`;
     $('.box', e).innerHTML = `<div class="sub">Chapter ${n} complete</div><h2>${c.title}</h2>
