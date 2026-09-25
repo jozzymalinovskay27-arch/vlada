@@ -29,6 +29,11 @@ def main():
             name, ext = os.path.splitext(f)
             if ext.lower() in ('.png', '.jpg', '.jpeg', '.webp'):
                 assets[prefix + name] = webp(os.path.join(d, f), size, 80 if size else 85)
+    snd = os.path.join(ASSETS, 'sounds')
+    for f in sorted(os.listdir(snd)) if os.path.isdir(snd) else []:
+        name, ext = os.path.splitext(f)
+        if ext.lower() == '.mp3':
+            assets['snd_' + name] = 'data:audio/mpeg;base64,' + base64.b64encode(open(os.path.join(snd, f), 'rb').read()).decode()
     html = open(SRC, encoding='utf-8').read()
     html = html.replace('/*ASSETS*/{}', json.dumps(assets))
     open(OUT, 'w', encoding='utf-8').write(html)

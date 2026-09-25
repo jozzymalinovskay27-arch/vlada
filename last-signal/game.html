@@ -354,7 +354,34 @@ function loadSave() { try { return JSON.parse(localStorage.getItem('lastSignal1'
 
 /* ---------- sound (generated, no files) ---------- */
 let AC = null, sound = true;
-function ac() { if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (AC && AC.state === 'suspended') AC.resume(); return AC; }
+function ac() { if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); loadSnds(); } catch (e) {} } if (AC && AC.state === 'suspended') AC.resume(); return AC; }
+/* recorded sounds (mp3 inside the file), decoded once */
+const BUF = {};
+let sndLoading = null;
+function loadSnds() {
+  if (sndLoading || !AC) return sndLoading;
+  sndLoading = Promise.all(Object.keys(A).filter(k => k.startsWith('snd_')).map(async k => {
+    try {
+      const bin = atob(A[k].split(',')[1]), arr = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      BUF[k.slice(4)] = await new Promise((res, rej) => AC.decodeAudioData(arr.buffer, res, rej));
+    } catch (e) {}
+  }));
+  return sndLoading;
+}
+function playSnd(name, { vol = .6, loop = false, dur = 0, offset = 0, fade = .4 } = {}) {
+  const a = AC, b = BUF[name];
+  if (!a || !b || !sound) return null;
+  const src = a.createBufferSource(), g = a.createGain();
+  src.buffer = b; src.loop = loop; g.gain.value = vol;
+  src.connect(g).connect(a.destination);
+  src.start(0, Math.min(offset, b.duration - .1));
+  if (dur) { g.gain.setValueAtTime(vol, a.currentTime + Math.max(0, dur - fade)); g.gain.linearRampToValueAtTime(0, a.currentTime + dur); src.stop(a.currentTime + dur + .05); }
+  return { stop(f = fade) { try { g.gain.cancelScheduledValues(a.currentTime); g.gain.setValueAtTime(g.gain.value, a.currentTime); g.gain.linearRampToValueAtTime(0, a.currentTime + f); src.stop(a.currentTime + f + .05); } catch (e) {} } };
+}
+const LOOPS = {};
+function loopOn(name, opts) { if (!LOOPS[name]) LOOPS[name] = playSnd(name, Object.assign({ loop: true }, opts)); }
+function loopOff(name, f) { if (LOOPS[name]) { LOOPS[name].stop(f); LOOPS[name] = null; } }
 function tone(f, d, type = 'sine', v = .12, slide = 0, delay = 0) {
   const a = ac(); if (!a || !sound) return;
   const t = a.currentTime + delay, o = a.createOscillator(), g = a.createGain();
@@ -376,10 +403,10 @@ const SFX = {
   ok() { tone(660, .12, 'triangle', .14); tone(990, .2, 'triangle', .14, 0, .1); },
   bad() { tone(200, .28, 'sawtooth', .08, -80); },
   item() { tone(520, .1, 'triangle', .12); tone(780, .1, 'triangle', .12, 0, .09); tone(1040, .18, 'triangle', .12, 0, .18); },
-  growl() { noise(.9, .3, 260); tone(70, .8, 'sawtooth', .07, -20); },
+  growl() { if (!playSnd('zombie', { vol: .8, dur: 3, offset: Math.random() * 4 })) { noise(.9, .3, 260); tone(70, .8, 'sawtooth', .07, -20); } },
   hurt() { tone(90, .25, 'sine', .4); tone(70, .3, 'sine', .3, 0, .22); },
-  radio(d = 1) { noise(d, .06, 3000, 'bandpass'); },
-  door() { tone(140, .5, 'sawtooth', .04, 60); noise(.4, .05, 800); },
+  radio(d = 1) { if (!playSnd('radio', { vol: .35, dur: Math.max(.6, d), offset: Math.random() * 4, fade: .25 })) noise(d, .06, 3000, 'bandpass'); },
+  door() { if (!playSnd('door', { vol: .7 })) { tone(140, .5, 'sawtooth', .04, 60); noise(.4, .05, 800); } },
   beep() { tone(1200, .09, 'square', .05); tone(1600, .12, 'square', .05, 0, .12); }
 };
 
@@ -431,7 +458,7 @@ function addStar(n = 1) { S.stars += n; renderHUD(); const s = $('#stars'); s.cl
 function setObj(t) { $('#obj').innerHTML = t ? `<small>Objective</small>${T(t)}` : ''; }
 let toastT;
 function toast(t) { const e = $('#toast'); e.innerHTML = T(t); e.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => e.classList.remove('on'), 2600); }
-$('#bSound').onclick = () => { sound = !sound; $('#bSound').textContent = sound ? '🔊' : '🔈'; if (!sound && window.speechSynthesis) speechSynthesis.cancel(); };
+$('#bSound').onclick = () => { sound = !sound; $('#bSound').textContent = sound ? '🔊' : '🔈'; if (!sound) { Object.keys(LOOPS).forEach(k => loopOff(k, .1)); if (window.speechSynthesis) speechSynthesis.cancel(); } };
 
 /* ---------- items ---------- */
 const ITEMS = {
@@ -714,9 +741,10 @@ function radioTask({ title, script, items, device = '📻', male = true, pitch =
       const radio = $('.radio', p);
       $$('.wave i', p).forEach((i, n) => i.style.animationDelay = (n % 7) * .07 + 's');
       $('.play', p).onclick = async () => {
-        SFX.radio(.8); radio.classList.add('play'); await sleep(700);
+        const isRadio = device === '📻';
+        if (isRadio) SFX.radio(.8); radio.classList.add('play'); await sleep(isRadio ? 700 : 200); if (isRadio) loopOn('radio', { vol: .06 });
         await speak(script, { male, rate: .88, pitch });
-        radio.classList.remove('play'); SFX.radio(.5); played = true;
+        loopOff('radio', .3); radio.classList.remove('play'); if (isRadio) SFX.radio(.5); played = true;
       };
       $('.tr', p).onclick = () => { $('.transcript', p).classList.toggle('on'); };
     }
@@ -731,9 +759,9 @@ function dangerTask({ zombie, who = 'maya', items, time = 14 }) {
     let queue = items.slice(), dist = 1, need = items.length, got = 0, timer = null;
     const missed = new Set(), starred = new Set();
     const setDist = () => { dz.style.height = [360, 470, 590, 700][Math.min(dist, 3)] + 'px'; dz.style.filter = `brightness(${.7 + dist * .08})`; };
-    setDist(); SFX.growl();
+    setDist(); SFX.growl(); loopOn('heartbeat', { vol: .8 });
     function next() {
-      if (got >= need) { clearInterval(timer); box.classList.remove('on'); return res(); }
+      if (got >= need) { clearInterval(timer); box.classList.remove('on'); loopOff('heartbeat', .8); return res(); }
       const it = queue.shift(); let t0 = Date.now(), answered = false;
       dq.innerHTML = `<div id="dprog">${got}/${need}</div><div class="who">${CH[who].n()} shouts:</div><div class="q">${T(it.s).replace('___', '<span class="gap">_____</span>')}</div><div class="opts"></div><div id="dbar"><i></i></div>`;
       const op = $('.opts', dq), bar = $('#dbar i');
@@ -803,13 +831,14 @@ function walk(a, x, y, speed = 300, free = false) {
     if (d < 4) return res();
     if (Math.abs(x - sx) > 3) a.face = x > sx ? 1 : -1;
     a.el.classList.add('walk');
+    if (a === hero) loopOn('footsteps', { vol: .45, offset: Math.random() * 8 });
     const t0 = performance.now(), dur = d / speed * 1000;
     const step = now => {
       if (a.token !== tok) return res();
       const t = Math.min(1, (now - t0) / dur);
       a.x = sx + (x - sx) * t; a.y = sy + (y - sy) * t; place(a);
       if (a === hero) follow();
-      if (t < 1) requestAnimationFrame(step); else { a.el.classList.remove('walk'); if (a === hero && pal) settle(); res(); }
+      if (t < 1) requestAnimationFrame(step); else { a.el.classList.remove('walk'); if (a === hero) loopOff('footsteps', .15); if (a === hero && pal) settle(); res(); }
     };
     requestAnimationFrame(step);
   });
@@ -851,7 +880,7 @@ world.addEventListener('click', e => {
 
 async function goScene(id) {
   await fade(async () => {
-    vnClose(); world.innerHTML = ''; npcs = {};
+    vnClose(); loopOff('footsteps', .1); world.innerHTML = ''; npcs = {};
     scene = SCENES[id]; sceneId = id;
     $('#bg').style.backgroundImage = `url(${A[scene.bg]})`;
     $('#dark').style.opacity = scene.dark != null ? scene.dark : 1;
@@ -2133,6 +2162,7 @@ function showMap(route, title, sub = 'Tap to continue') {
 
 async function startChapter(n) {
   const c = CHAPTERS[n];
+  Object.keys(LOOPS).forEach(k => loopOff(k, .1));
   Object.assign(S, { ch: n, hearts: 3, f: {}, chStars: S.stars, chNotes: [] });
   c.setup(); save(); renderHUD();
   await narration(c.intro);
