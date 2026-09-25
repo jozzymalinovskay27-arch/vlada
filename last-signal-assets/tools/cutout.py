@@ -13,7 +13,7 @@ from PIL import Image
 from scipy import ndimage as nd
 
 
-def matte(path):
+def matte(path, min_area=5000):
     im = np.asarray(Image.open(path).convert('RGB')).astype(np.float32)
     mn, mx = im.min(2), im.max(2)
     near = (mn >= 235) & ((mx - mn) < 18)
@@ -41,7 +41,7 @@ def matte(path):
     fg = nd.binary_opening(~np.isin(lab, bg_ids), iterations=1)
     l2, n2 = nd.label(fg)
     s2 = nd.sum(fg, l2, range(1, n2 + 1))
-    fg = np.isin(l2, [i + 1 for i, s in enumerate(s2) if s > 5000])
+    fg = np.isin(l2, [i + 1 for i, s in enumerate(s2) if s > min_area])
 
     # soft edge: alpha from the colour of the nearest solid foreground pixel
     dist = nd.distance_transform_edt(fg)
@@ -84,9 +84,18 @@ if __name__ == '__main__':
     if args[0] == '--sheet':
         out, src, names = args[1], args[2], args[3:]
         os.makedirs(out, exist_ok=True)
-        rgba, fg = matte(src)
+        rgba, fg = matte(src, min_area=600)
         H = rgba.shape[0]
-        bx = sorted(boxes(fg), key=lambda b: (b[0] > H / 2, b[1]))
+        # group objects into rows by their vertical centre, then sort each row left to right
+        bx = sorted(boxes(fg), key=lambda b: (b[0] + b[2]) / 2)
+        hmed = sorted(b[2] - b[0] for b in bx)[len(bx) // 2]
+        rows, last = [], None
+        for b in bx:
+            c = (b[0] + b[2]) / 2
+            if last is None or c - last > hmed * .6:
+                rows.append([])
+            rows[-1].append(b); last = c
+        bx = [b for r in rows for b in sorted(r, key=lambda b: b[1])]
         for b, nm in zip(bx, names):
             save(rgba, b, f'{out}/{nm}.png')
     else:

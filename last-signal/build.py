@@ -23,7 +23,7 @@ def webp(path, size=None, quality=82):
 
 def main():
     assets = {}
-    for folder, prefix, size in (('characters', '', None), ('zombies', '', None), ('backgrounds', 'bg_', (1280, 720))):
+    for folder, prefix, size in (('characters', '', None), ('zombies', '', None), ('items', 'item_', None), ('backgrounds', 'bg_', (1280, 720))):
         d = os.path.join(ASSETS, folder)
         for f in sorted(os.listdir(d)):
             name, ext = os.path.splitext(f)
