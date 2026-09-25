@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Last Signal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@600;700;800;900&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+:root{--amber:#e0a526;--amber-d:#9c6f10;--ink:#ecebe4;--muted:#a3a89a;--panel:#1a1e1a;--line:#3a4235;--red:#d0462f;--green:#6cbf4f;--blue:#8fc7ff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#050605;overflow:hidden;font-family:Nunito,system-ui,sans-serif;color:var(--ink)}
+button{font-family:inherit;cursor:pointer}
+#stage{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0;overflow:hidden;background:#000;user-select:none;-webkit-user-select:none}
+.screen{position:absolute;inset:0;display:none}
+.screen.on{display:block}
+#rotate{display:none;position:fixed;inset:0;z-index:999;background:#050605;color:#fff;font:800 20px Nunito;text-align:center;padding:40px;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+@media (orientation:portrait) and (max-width:820px){#rotate{display:flex}}
+
+
+/* buttons */
+.btn{border:none;border-radius:12px;padding:14px 28px;font-weight:900;font-size:22px;background:var(--amber);color:#1c1403;box-shadow:0 4px 0 var(--amber-d)}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--amber-d)}
+.btn.ghost{background:rgba(255,255,255,.08);color:var(--ink);box-shadow:none;border:2px solid rgba(255,255,255,.25)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.row.end{justify-content:flex-end;margin-top:18px}
+
+/* title */
+#title{background:#111 center/cover no-repeat}
+#title .veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.2),rgba(0,0,0,.25) 40%,rgba(0,0,0,.85))}
+#title .box{position:absolute;left:0;right:0;bottom:70px;text-align:center}
+#title h1{font-family:'Bebas Neue',Oswald,Impact,'Arial Narrow',sans-serif;font-size:150px;line-height:.9;margin:0;color:#f3e7cf;text-shadow:0 6px 30px rgba(0,0,0,.8);letter-spacing:.06em}
+#title h1 span{color:var(--amber)}
+#title p{font-size:22px;font-weight:800;margin:6px 0 30px;color:#d8d2c2;text-shadow:0 2px 8px #000}
+#title .signal{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--red);margin-right:10px;box-shadow:0 0 0 0 rgba(208,70,47,.8);animation:ping 1.6s infinite;vertical-align:middle}
+@keyframes ping{to{box-shadow:0 0 0 18px rgba(208,70,47,0)}}
+
+/* name + narration */
+#nameScr,#narr{background:#070807}
+#nameScr .box{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;width:640px}
+#nameScr h2{font-family:'Bebas Neue',Oswald,Impact,'Arial Narrow',sans-serif;font-size:64px;margin:0 0 6px;color:#f3e7cf}
+#nameScr p{color:var(--muted);font-size:20px;margin:0 0 24px}
+#nameIn{width:100%;font:800 34px Nunito;text-align:center;padding:14px;border-radius:14px;border:2px solid var(--line);background:#111411;color:var(--ink);outline:none}
+#nameIn:focus{border-color:var(--amber)}
+#narr .txt{position:absolute;left:160px;right:160px;top:50%;transform:translateY(-50%);font-family:'Special Elite',monospace;font-size:34px;line-height:1.5;color:#e8e2d0;text-align:center}
+#narr .tap,.vn-next{position:absolute;right:40px;bottom:30px;font-size:16px;font-weight:800;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;animation:blink 1.4s infinite}
+@keyframes blink{50%{opacity:.3}}
+
+/* game world */
+#bg{position:absolute;inset:0;background:#000 center/100% 100% no-repeat}
+#world{position:absolute;inset:0}
+#dark{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 60%,transparent 40%,rgba(0,0,0,.55))}
+.actor{position:absolute;transform:translate(-50%,-100%);pointer-events:none}
+.actor img{display:block;filter:drop-shadow(0 6px 6px rgba(0,0,0,.35))}
+.actor:after{content:"";position:absolute;left:50%;bottom:-8px;width:80%;height:18px;transform:translateX(-50%);background:radial-gradient(closest-side,rgba(0,0,0,.55),transparent);z-index:-1}
+.actor.walk img{animation:bob .42s ease-in-out infinite}
+@keyframes bob{0%,100%{translate:0 0}50%{translate:0 -7px}}
+.actor.npc{pointer-events:auto;cursor:pointer}
+.actor.zombie img{filter:drop-shadow(0 6px 6px rgba(0,0,0,.35)) brightness(.85) sepia(.2)}
+.actor.zombie.walk img{animation:shamble 1s ease-in-out infinite}
+@keyframes shamble{0%,100%{translate:0 0;rotate:-2deg}50%{translate:0 -4px;rotate:2deg}}
+.spot{position:absolute;transform:translate(-50%,-50%);z-index:900;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
+.spot .ic{width:54px;height:54px;border-radius:50%;background:rgba(20,22,18,.78);border:3px solid var(--amber);display:grid;place-items:center;font-size:26px;box-shadow:0 0 0 0 rgba(224,165,38,.7);animation:pulse 1.8s infinite}
+.spot .lb{font-size:15px;font-weight:900;background:rgba(10,12,10,.85);padding:3px 10px;border-radius:999px;white-space:nowrap}
+#game.cut .spot,#game.cut #obj{opacity:0;pointer-events:none}
+#obj{transition:opacity .2s}
+.spot{transition:opacity .2s}
+.spot.done .ic{border-color:#6f7568;animation:none;opacity:.7}
+.spot.done .lb{opacity:.6}
+.spot.exit .ic{border-color:var(--green)}
+@keyframes pulse{70%{box-shadow:0 0 0 16px rgba(224,165,38,0)}100%{box-shadow:0 0 0 0 rgba(224,165,38,0)}}
+.tapfx{position:absolute;width:40px;height:16px;border:3px solid rgba(224,165,38,.9);border-radius:50%;transform:translate(-50%,-50%);animation:tapfx .5s forwards;pointer-events:none;z-index:899}
+@keyframes tapfx{to{width:80px;height:30px;opacity:0}}
+
+/* HUD */
+#hud{position:absolute;inset:0;pointer-events:none;z-index:1500}
+#obj{position:absolute;left:18px;top:16px;max-width:560px;background:rgba(10,12,10,.82);border-left:4px solid var(--amber);border-radius:10px;padding:10px 16px;font-weight:800;font-size:18px}
+#obj small{display:block;font-size:12px;letter-spacing:.14em;color:var(--amber);text-transform:uppercase}
+#obj:empty{display:none}
+#stats{position:absolute;right:16px;top:14px;display:flex;gap:10px;align-items:center;pointer-events:auto}
+.pill{background:rgba(10,12,10,.82);border-radius:999px;padding:8px 14px;font-weight:900;font-size:18px;display:flex;gap:6px;align-items:center;border:1px solid rgba(255,255,255,.08)}
+.hbtn{width:48px;height:48px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(10,12,10,.82);color:#fff;font-size:22px;display:grid;place-items:center}
+.hbtn:active{transform:scale(.94)}
+#hearts b{color:var(--red);font-size:20px}
+#hearts b.off{color:#444}
+#stars.pop{animation:pop .4s}
+@keyframes pop{50%{transform:scale(1.25)}}
+#toast{position:absolute;left:50%;bottom:30px;transform:translateX(-50%) translateY(20px);opacity:0;background:rgba(10,12,10,.92);border:1px solid var(--amber);padding:12px 22px;border-radius:12px;font-weight:900;font-size:20px;transition:.3s;z-index:4000;pointer-events:none;white-space:nowrap}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* VN */
+#vn{position:absolute;inset:0;z-index:2000;display:none;cursor:pointer}
+#vn.on{display:block}
+#vn .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.25) 50%,rgba(0,0,0,.75))}
+.pt{position:absolute;top:38px;height:1000px;opacity:0;transition:opacity .25s,filter .25s,transform .25s}
+.pt img{height:100%;display:block}
+.pt.in{opacity:1}
+.pt.dim{filter:brightness(.45) saturate(.7)}
+#vnL{left:30px;transform:translateX(-20px)}
+#vnR{right:30px;transform:translateX(20px)}
+#vnL.in,#vnR.in{transform:none}
+#vnBox{position:absolute;left:60px;right:60px;bottom:22px;min-height:156px;background:rgba(12,14,12,.93);border:1px solid rgba(224,165,38,.45);border-radius:16px;padding:32px 36px 26px;font-size:27px;line-height:1.4;font-weight:700;box-shadow:0 10px 40px rgba(0,0,0,.6)}
+#vnBox.narr{font-family:'Special Elite',monospace;font-weight:400;color:#e2dccb;border-color:rgba(255,255,255,.2)}
+#vnName{position:absolute;left:28px;top:-20px;padding:6px 18px;border-radius:10px;font-weight:900;font-size:20px;color:#101010;background:var(--amber)}
+#vnBox .vn-next{right:22px;bottom:10px;font-size:13px;display:none}
+#vnBox.ready .vn-next{display:block}
+#vnChoices{position:absolute;left:50%;transform:translateX(-50%);bottom:198px;display:flex;flex-direction:column;gap:10px;width:820px;z-index:3}
+.choice{text-align:left;border:2px solid rgba(224,165,38,.55);background:rgba(16,18,14,.95);color:var(--ink);font-size:23px;font-weight:800;padding:14px 22px;border-radius:14px}
+.choice:hover{background:#2a2412;border-color:var(--amber)}
+.choice:before{content:"› ";color:var(--amber)}
+
+/* modal / tasks */
+#modal{position:absolute;inset:0;z-index:3000;display:none;background:rgba(0,0,0,.62);align-items:center;justify-content:center}
+#modal.on{display:flex}
+.panel{width:900px;max-height:680px;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:26px 34px;box-shadow:0 20px 60px rgba(0,0,0,.7);animation:rise .25s}
+@keyframes rise{from{transform:translateY(20px);opacity:0}}
+.thead{display:flex;justify-content:space-between;align-items:center;font-weight:900;color:var(--amber);font-size:16px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}
+.dots{display:flex;gap:6px}
+.dots i{width:12px;height:12px;border-radius:50%;background:#333a31}
+.dots i.d{background:var(--green)}
+.dots i.c{background:var(--amber)}
+.intro{color:var(--muted);font-size:20px;margin:0 0 16px;font-weight:700}
+.q{font-size:32px;font-weight:800;margin:14px 0 22px;line-height:1.35}
+.gap{display:inline-block;min-width:120px;border-bottom:3px dashed var(--amber);color:var(--amber);text-align:center}
+.gap.filled{border-bottom-style:solid;color:var(--green)}
+.opts{display:flex;gap:12px;flex-wrap:wrap}
+.opt{border:2px solid #4a5344;background:#252a24;color:var(--ink);font-size:24px;font-weight:800;padding:12px 24px;border-radius:12px}
+.opt:hover:not(:disabled){border-color:var(--amber)}
+.opt.right{border-color:var(--green);background:#1f3318}
+.opt.wrong{border-color:var(--red);background:#3a1a14;animation:shake .35s}
+.opt:disabled{cursor:default}
+.opt.wrong:disabled{opacity:.6}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.fb{min-height:34px;margin-top:18px;font-size:20px;font-weight:800}
+.fb.good{color:var(--green)}
+.fb.bad{color:#ff8a70}
+.tip h2{font-family:'Bebas Neue',Oswald,Impact,'Arial Narrow',sans-serif;font-size:46px;margin:0 0 8px;color:#f3e7cf;letter-spacing:.04em}
+.tiphead{font-weight:900;color:var(--amber);letter-spacing:.14em;font-size:15px;text-transform:uppercase}
+.tipbody{font-size:21px;line-height:1.55}
+.tipbody b{color:var(--amber)}
+.tipbody .ex{background:#252a24;border-left:4px solid var(--amber);padding:8px 14px;border-radius:8px;margin:8px 0}
+.tipbody .no{color:#ff8a70}
+.tipbody .yes{color:var(--green)}
+/* reading */
+.panel.wide{width:1180px}
+.read{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:start}
+.paper{background:#ece2c6;color:#2b2416;font-family:'Special Elite',monospace;font-size:19px;line-height:1.5;padding:24px 26px;border-radius:6px;box-shadow:inset 0 0 40px rgba(120,90,40,.35);transform:rotate(-.6deg)}
+.paper p{margin:0 0 12px}
+.gl{border-bottom:2px dotted #8a6a2a;cursor:help;position:relative}
+.gl.show:after{content:attr(data-d);position:absolute;left:0;top:100%;margin-top:4px;background:#111;color:#fff;font:700 15px Nunito;padding:6px 10px;border-radius:8px;white-space:nowrap;z-index:5}
+.stm{background:#232822;border:1px solid #384035;border-radius:12px;padding:10px 12px 10px 16px;margin-bottom:8px;display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center}
+.stm .s{font-size:20px;font-weight:800}
+.stm .b{display:flex;gap:6px;align-items:center}
+.stm .opt{font-size:16px;padding:6px 12px}
+.stm .w{grid-column:1/-1;font-size:15px;font-weight:700;color:#ff8a70}
+.stm .w:empty{display:none}
+.stm.ok{border-color:var(--green)}
+.stm.ok .w{color:var(--green)}
+/* match */
+.match{display:grid;grid-template-columns:260px 1fr;gap:12px 18px}
+.mw,.md{border:2px solid #4a5344;background:#252a24;color:var(--ink);font-weight:800;border-radius:12px;padding:10px 14px;text-align:left}
+.mw{font-size:23px}
+.md{font-size:18px}
+.mw.sel,.md.sel{border-color:var(--amber);background:#352c12}
+.mw.ok,.md.ok{border-color:var(--green);background:#1f3318;opacity:.75;cursor:default}
+.mw.bad,.md.bad{animation:shake .35s;border-color:var(--red)}
+/* order */
+.built{min-height:66px;border:2px dashed #4a5344;border-radius:14px;padding:10px;display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 16px}
+.chip{border:2px solid #4a5344;background:#2b3129;color:var(--ink);font-size:24px;font-weight:800;padding:8px 16px;border-radius:10px}
+.built .chip{border-color:var(--amber)}
+.built.good{border-color:var(--green)}
+.built.bad{border-color:var(--red);animation:shake .35s}
+/* speak */
+.say{font-size:38px;font-weight:900;text-align:center;margin:18px 0 8px;color:#f3e7cf}
+.saynote{text-align:center;color:var(--muted);font-size:18px;margin-bottom:22px}
+.mic{width:110px;height:110px;border-radius:50%;border:none;background:var(--red);color:#fff;font-size:46px;box-shadow:0 6px 0 #8a2a1a}
+.mic.rec{animation:rec 1s infinite}
+@keyframes rec{50%{box-shadow:0 6px 0 #8a2a1a,0 0 0 18px rgba(208,70,47,.25)}}
+.heard{text-align:center;font-size:21px;font-weight:800;min-height:60px;margin-top:16px}
+.heard .good{color:var(--green)}
+.heard .bad{color:#ff8a70}
+/* radio */
+.radio{display:flex;gap:20px;align-items:center;background:#111411;border:1px solid var(--line);border-radius:16px;padding:16px 20px;margin-bottom:14px}
+.radio .wave{flex:1;height:46px;display:flex;gap:4px;align-items:center}
+.radio .wave i{flex:1;background:var(--amber);height:10%;border-radius:3px;opacity:.5}
+.radio.play .wave i{animation:wave .5s infinite alternate}
+@keyframes wave{to{height:100%;opacity:1}}
+.transcript{font-family:'Special Elite',monospace;font-size:18px;line-height:1.5;background:#ece2c6;color:#2b2416;padding:14px 18px;border-radius:8px;margin-bottom:12px;display:none}
+.transcript.on{display:block}
+/* danger */
+#danger{position:absolute;inset:0;z-index:2500;display:none}
+#danger.on{display:block}
+#danger .red{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 30%,rgba(120,0,0,.65));animation:throb 1s infinite}
+@keyframes throb{50%{opacity:.6}}
+#dz{position:absolute;left:50%;bottom:-40px;transform:translateX(-50%);transition:height .6s,filter .6s;height:420px;filter:brightness(.8)}
+#dq{position:absolute;left:50%;top:26px;transform:translateX(-50%);width:900px;background:rgba(14,10,10,.94);border:2px solid var(--red);border-radius:18px;padding:18px 28px}
+#dq .who{font-weight:900;color:var(--blue);font-size:18px}
+#dq .q{margin:8px 0 14px;font-size:30px}
+#dbar{height:10px;background:#3a1a14;border-radius:5px;overflow:hidden;margin-top:14px}
+#dbar i{display:block;height:100%;background:var(--red);width:100%}
+#dprog{position:absolute;right:28px;top:18px;font-weight:900;color:#ff8a70}
+/* bag / journal */
+.bag{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.it{display:flex;gap:14px;align-items:center;background:#232822;border:1px solid #384035;border-radius:14px;padding:12px}
+.it .i{font-size:40px;width:56px;text-align:center}
+.it b{font-size:20px}
+.it p{margin:2px 0 0;color:var(--muted);font-weight:700;font-size:16px}
+.tabs{display:flex;gap:8px;margin-bottom:14px}
+.tab{border:none;background:#252a24;color:var(--muted);font-weight:900;font-size:18px;padding:8px 18px;border-radius:999px}
+.tab.on{background:var(--amber);color:#1c1403}
+.jn{background:#232822;border-radius:14px;padding:14px 18px;margin-bottom:12px}
+.jn h3{margin:0 0 6px;font-family:'Bebas Neue',Oswald,Impact,'Arial Narrow',sans-serif;font-size:32px;letter-spacing:.04em;color:#f3e7cf}
+.words{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.words div{background:#232822;border-radius:10px;padding:8px 12px;font-size:17px;font-weight:700;color:var(--muted)}
+.words b{color:var(--ink);font-size:19px}
+.empty{color:var(--muted);font-size:20px;font-weight:700}
+/* end */
+#endScr{background:#000 center/cover no-repeat}
+#endScr .veil{position:absolute;inset:0;background:rgba(0,0,0,.72)}
+#endScr .box{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:1000px;text-align:center}
+#endScr h2{font-family:'Bebas Neue',Oswald,Impact,'Arial Narrow',sans-serif;font-size:90px;margin:0;color:#f3e7cf;line-height:1}
+#endScr .sub{color:var(--amber);font-weight:900;letter-spacing:.14em;text-transform:uppercase}
+.sum{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin:26px 0;text-align:left}
+.sum>div{background:rgba(26,30,26,.92);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+.sum h4{margin:0 0 8px;color:var(--amber);font-size:15px;letter-spacing:.12em;text-transform:uppercase}
+.sum li{font-weight:800;font-size:18px;margin-bottom:4px}
+.sum ul{margin:0;padding-left:18px}
+.big{font-size:54px;font-weight:900}
+#fade{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .45s;z-index:5000}
+#fade.on{opacity:1;pointer-events:auto}
+</style>
+</head>
+<body>
+<div id="rotate"><div style="font-size:60px">📱↻</div>Please turn your phone sideways to play.</div>
+<div id="stage">
+  <div id="title" class="screen on">
+    <div class="veil"></div>
+    <div class="box">
+      <h1>LAST <span>SIGNAL</span></h1>
+      <p><span class="signal"></span>An English survival story · A2–B1</p>
+      <div class="row" style="justify-content:center">
+        <button class="btn" id="bNew">New game</button>
+        <button class="btn ghost" id="bCont" style="display:none">Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="nameScr" class="screen">
+    <div class="box">
+      <h2>WHAT'S YOUR NAME?</h2>
+      <p>The other characters will call you by this name.</p>
+      <input id="nameIn" maxlength="14" autocomplete="off" spellcheck="false" value="Alex">
+      <div class="row" style="justify-content:center;margin-top:26px"><button class="btn" id="bName">Start ›</button></div>
+    </div>
+  </div>
+
+  <div id="narr" class="screen"><div class="txt"></div><div class="tap">tap to continue</div></div>
+
+  <div id="game" class="screen">
+    <div id="bg"></div>
+    <div id="world"></div>
+    <div id="dark"></div>
+    <div id="hud">
+      <div id="obj"></div>
+      <div id="stats">
+        <div class="pill" id="hearts"></div>
+        <div class="pill" id="stars">⭐ <span>0</span></div>
+        <button class="hbtn" id="bBag" title="Backpack">🎒</button>
+        <button class="hbtn" id="bJournal" title="Notebook">📓</button>
+        <button class="hbtn" id="bSound" title="Sound">🔊</button>
+      </div>
+    </div>
+    <div id="vn">
+      <div class="shade"></div>
+      <div class="pt" id="vnL"><img alt=""></div>
+      <div class="pt" id="vnR"><img alt=""></div>
+      <div id="vnChoices"></div>
+      <div id="vnBox"><div id="vnName"></div><div id="vnText"></div><div class="vn-next">tap ›</div></div>
+    </div>
+    <div id="danger"><div class="red"></div><img id="dz" alt=""><div id="dq"></div></div>
+  </div>
+
+  <div id="endScr" class="screen"><div class="veil"></div><div class="box"></div></div>
+
+  <div id="modal"></div>
+  <div id="toast"></div>
+  <div id="fade"></div>
+</div>
+
+<script>
+const A = /*ASSETS*/{};
+
+/* ---------- basics ---------- */
+const W = 1280, H = 720;
+const stage = document.getElementById('stage');
+let K = 1;
+function fit() {
+  const vv = window.visualViewport;
+  const w = vv ? vv.width : document.documentElement.clientWidth || innerWidth;
+  const h = vv ? vv.height : document.documentElement.clientHeight || innerHeight;
+  K = Math.min(w / W, h / H);
+  stage.style.transform = `scale(${K})`;
+  stage.style.left = (w - W * K) / 2 + 'px';
+  stage.style.top = (h - H * K) / 2 + 'px';
+}
+addEventListener('resize', fit); addEventListener('orientationchange', () => setTimeout(fit, 200)); addEventListener('load', fit);
+if (window.visualViewport) visualViewport.addEventListener('resize', fit);
+fit(); setTimeout(fit, 300);
+
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+function el(tag, cls, html) { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const T = s => String(s).replace(/\{name\}/g, S.name);
+function show(id) { $$('.screen').forEach(s => s.classList.toggle('on', s.id === id)); }
+function stagePoint(e) { const r = stage.getBoundingClientRect(); return { x: (e.clientX - r.left) / K, y: (e.clientY - r.top) / K }; }
+
+/* ---------- state ---------- */
+const S = { name: 'Alex', hearts: 3, stars: 0, bag: [], f: {}, notes: [], words: [], follow: null };
+function save() { try { localStorage.setItem('lastSignal1', JSON.stringify({ name: S.name })); } catch (e) {} }
+function loadSave() { try { return JSON.parse(localStorage.getItem('lastSignal1') || 'null'); } catch (e) { return null; } }
+
+/* ---------- sound (generated, no files) ---------- */
+let AC = null, sound = true;
+function ac() { if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (AC && AC.state === 'suspended') AC.resume(); return AC; }
+function tone(f, d, type = 'sine', v = .12, slide = 0, delay = 0) {
+  const a = ac(); if (!a || !sound) return;
+  const t = a.currentTime + delay, o = a.createOscillator(), g = a.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t); if (slide) o.frequency.linearRampToValueAtTime(f + slide, t + d);
+  g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.001, t + d);
+  o.connect(g).connect(a.destination); o.start(t); o.stop(t + d + .02);
+}
+function noise(d, v = .08, freq = 1500, type = 'lowpass') {
+  const a = ac(); if (!a || !sound) return;
+  const len = a.sampleRate * d | 0, b = a.createBuffer(1, len, a.sampleRate), ch = b.getChannelData(0);
+  for (let i = 0; i < len; i++) ch[i] = Math.random() * 2 - 1;
+  const s = a.createBufferSource(); s.buffer = b;
+  const f = a.createBiquadFilter(); f.type = type; f.frequency.value = freq;
+  const g = a.createGain(); g.gain.setValueAtTime(v, a.currentTime); g.gain.linearRampToValueAtTime(.001, a.currentTime + d);
+  s.connect(f).connect(g).connect(a.destination); s.start();
+}
+const SFX = {
+  click() { tone(520, .05, 'square', .03); },
+  ok() { tone(660, .12, 'triangle', .14); tone(990, .2, 'triangle', .14, 0, .1); },
+  bad() { tone(200, .28, 'sawtooth', .08, -80); },
+  item() { tone(520, .1, 'triangle', .12); tone(780, .1, 'triangle', .12, 0, .09); tone(1040, .18, 'triangle', .12, 0, .18); },
+  growl() { noise(.9, .3, 260); tone(70, .8, 'sawtooth', .07, -20); },
+  hurt() { tone(90, .25, 'sine', .4); tone(70, .3, 'sine', .3, 0, .22); },
+  radio(d = 1) { noise(d, .06, 3000, 'bandpass'); },
+  door() { tone(140, .5, 'sawtooth', .04, 60); noise(.4, .05, 800); },
+  beep() { tone(1200, .09, 'square', .05); tone(1600, .12, 'square', .05, 0, .12); }
+};
+
+/* ---------- speech: text-to-speech + recognition ---------- */
+function voice(male) {
+  const vs = (window.speechSynthesis ? speechSynthesis.getVoices() : []).filter(v => /^en/i.test(v.lang));
+  if (!vs.length) return null;
+  const pref = male ? /(daniel|david|alex|fred|guy|george|mark|male|us english)/i : /(samantha|zira|susan|karen|victoria|female|us english)/i;
+  return vs.find(v => /en-US/i.test(v.lang) && pref.test(v.name)) || vs.find(v => pref.test(v.name)) || vs.find(v => /en-US/i.test(v.lang)) || vs[0];
+}
+function speak(text, o = {}) {
+  return new Promise(res => {
+    try {
+      if (!window.speechSynthesis) return res();
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'en-US'; u.rate = o.rate || .9; u.pitch = o.pitch || 1;
+      const v = voice(o.male); if (v) u.voice = v;
+      u.onend = res; u.onerror = res;
+      speechSynthesis.speak(u);
+      setTimeout(res, 400 + text.length * 110);
+    } catch (e) { res(); }
+  });
+}
+if (window.speechSynthesis) speechSynthesis.onvoiceschanged = () => {};
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const CONTR = { "i'm": 'i am', "you're": 'you are', "we're": 'we are', "they're": 'they are', "it's": 'it is', "he's": 'he is', "she's": 'she is', "that's": 'that is', "what's": 'what is', "there's": 'there is', "don't": 'do not', "doesn't": 'does not', "isn't": 'is not', "aren't": 'are not', "can't": 'can not', "cannot": 'can not', "let's": 'let us', "we'll": 'we will', "i'll": 'i will' };
+function words(s) { return s.toLowerCase().replace(/[’`]/g, "'").replace(/[^a-z' ]/g, ' ').split(/\s+/).filter(Boolean).map(w => CONTR[w] || w).join(' ').split(' '); }
+function matchScore(target, heard) { const t = words(target), h = new Set(words(heard)); return t.filter(w => h.has(w)).length / t.length; }
+function listenOnce() {
+  return new Promise(res => {
+    let got = [];
+    try {
+      const r = new SR(); r.lang = 'en-US'; r.interimResults = false; r.maxAlternatives = 5;
+      r.onresult = e => { got = [...e.results[0]].map(a => a.transcript); };
+      r.onerror = e => { if (e.error === 'not-allowed' || e.error === 'service-not-allowed') got = null; };
+      r.onend = () => res(got);
+      r.start();
+    } catch (e) { res(null); }
+  });
+}
+
+/* ---------- HUD ---------- */
+function renderHUD() {
+  $('#hearts').innerHTML = [0, 1, 2].map(i => `<b class="${i < S.hearts ? '' : 'off'}">♥</b>`).join('');
+  $('#stars span').textContent = S.stars;
+}
+function addStar(n = 1) { S.stars += n; renderHUD(); const s = $('#stars'); s.classList.remove('pop'); void s.offsetWidth; s.classList.add('pop'); }
+function setObj(t) { $('#obj').innerHTML = t ? `<small>Objective</small>${T(t)}` : ''; }
+let toastT;
+function toast(t) { const e = $('#toast'); e.innerHTML = T(t); e.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => e.classList.remove('on'), 2600); }
+$('#bSound').onclick = () => { sound = !sound; $('#bSound').textContent = sound ? '🔊' : '🔈'; if (!sound && window.speechSynthesis) speechSynthesis.cancel(); };
+
+/* ---------- items ---------- */
+const ITEMS = {
+  note: { i: '📝', n: "Maya's note", d: 'A note from Dr. Maya Chen. She is hiding in the hospital.' },
+  bandage: { i: '🩹', n: 'Bandage', d: 'Tap to use: gives you back 1 heart.', use: 'heal' },
+  flashlight: { i: '🔦', n: 'Flashlight', d: 'Walkers hate bright light.' },
+  batteries: { i: '🔋', n: 'Batteries', d: 'Two batteries for the flashlight.' },
+  keycard: { i: '💳', n: 'Key card', d: 'A staff card. It opens the hospital doors.' },
+  radio: { i: '📻', n: 'Walkie-talkie', d: 'An old radio from the ambulance. It still works.' }
+};
+function addItem(id) { if (!S.bag.includes(id)) S.bag.push(id); SFX.item(); toast(`${ITEMS[id].i} ${ITEMS[id].n} — added to your backpack`); }
+$('#bBag').onclick = () => {
+  if (busyModal()) return; SFX.click();
+  const p = openModal(`<div class="thead"><span>🎒 Backpack</span></div>${S.bag.length ? '<div class="bag"></div>' : '<p class="empty">Your backpack is empty.</p>'}<div class="row end"><button class="btn">Close</button></div>`);
+  const bag = $('.bag', p);
+  S.bag.forEach(id => {
+    const it = ITEMS[id], d = el('div', 'it', `<div class="i">${it.i}</div><div><b>${it.n}</b><p>${it.d}</p></div>`);
+    if (it.use === 'heal') { d.style.cursor = 'pointer'; d.onclick = () => { if (S.hearts >= 3) { toast('Your health is full.'); return; } S.hearts++; S.bag.splice(S.bag.indexOf(id), 1); renderHUD(); SFX.ok(); closeModal(); toast('🩹 You used the bandage. +1 ♥'); }; }
+    bag && bag.appendChild(d);
+  });
+  $('.btn', p).onclick = () => { SFX.click(); closeModal(); };
+};
+
+/* ---------- notebook: grammar + words ---------- */
+function learnNote(title, body) { if (!S.notes.find(n => n.t === title)) S.notes.push({ t: title, b: body }); }
+function learnWords(list) { list.forEach(w => { if (!S.words.find(x => x[0] === w[0])) S.words.push(w); }); }
+$('#bJournal').onclick = () => {
+  if (busyModal()) return; SFX.click();
+  const p = openModal(`<div class="thead"><span>📓 Notebook</span></div><div class="tabs"><button class="tab on" data-t="g">Grammar</button><button class="tab" data-t="w">Words</button></div><div class="jbody"></div><div class="row end"><button class="btn">Close</button></div>`);
+  const body = $('.jbody', p);
+  const draw = t => {
+    $$('.tab', p).forEach(b => b.classList.toggle('on', b.dataset.t === t));
+    if (t === 'g') body.innerHTML = S.notes.length ? S.notes.map(n => `<div class="jn"><h3>${n.t}</h3><div class="tipbody">${n.b}</div></div>`).join('') : '<p class="empty">No grammar notes yet.</p>';
+    else body.innerHTML = S.words.length ? `<div class="words">${S.words.map(w => `<div><b>${w[0]}</b> — ${w[1]}</div>`).join('')}</div>` : '<p class="empty">No new words yet.</p>';
+  };
+  $$('.tab', p).forEach(b => b.onclick = () => { SFX.click(); draw(b.dataset.t); });
+  draw('g');
+  $('.btn', p).onclick = () => { SFX.click(); closeModal(); };
+};
+
+/* ---------- visual novel dialogue ---------- */
+const CH = {
+  hero: { n: () => S.name, c: '#e0a526', img: 'hero_m' },
+  maya: { n: () => 'Maya', c: '#8fc7ff', img: 'maya' },
+  jake: { n: () => 'Jake', c: '#9fd67a', img: 'jake' },
+  radio: { n: () => 'Radio', c: '#c9c9c9' }
+};
+const vn = $('#vn'), vnL = $('#vnL'), vnR = $('#vnR'), vnBox = $('#vnBox'), vnName = $('#vnName'), vnText = $('#vnText'), vnCh = $('#vnChoices');
+function vnOpen() { vn.classList.add('on'); }
+function vnClose() { vn.classList.remove('on'); vnL.className = 'pt'; vnR.className = 'pt'; vnL.dataset.who = vnR.dataset.who = ''; }
+function setPt(slot, who, emo) {
+  const src = A[`${CH[who].img}_${emo}`] || A[`${CH[who].img}_neutral`];
+  const img = $('img', slot); if (img.getAttribute('src') !== src) img.src = src;
+  slot.dataset.who = who; slot.classList.add('in');
+}
+function typeText(text) {
+  return new Promise(res => {
+    let i = 0, done = false;
+    vnText.textContent = ''; vnBox.classList.remove('ready');
+    const fin = () => { if (done) return; done = true; clearInterval(t); vn.removeEventListener('click', skip); vnText.textContent = text; vnBox.classList.add('ready'); res(); };
+    const skip = () => fin();
+    const t = setInterval(() => { i += 2; vnText.textContent = text.slice(0, i); if (i >= text.length) fin(); }, 28);
+    setTimeout(() => { if (!done) vn.addEventListener('click', skip); }, 80);
+  });
+}
+function vnWait() { return new Promise(res => { const h = () => { vn.removeEventListener('click', h); SFX.click(); res(); }; setTimeout(() => vn.addEventListener('click', h), 80); }); }
+async function say(who, emo, text) {
+  vnOpen(); vnCh.innerHTML = '';
+  if (who === 'hero') setPt(vnL, 'hero', emo);
+  else if (CH[who] && CH[who].img) setPt(vnR, who, emo);
+  vnL.classList.toggle('dim', who !== 'hero');
+  vnR.classList.toggle('dim', who === 'hero' || who === 'narr' || who === 'radio');
+  const narr = who === 'narr';
+  vnBox.classList.toggle('narr', narr);
+  vnName.style.display = narr ? 'none' : '';
+  if (!narr) { vnName.textContent = CH[who].n(); vnName.style.background = CH[who].c; }
+  await typeText(T(text));
+  await vnWait();
+}
+const narr = t => say('narr', '', t);
+function choose(opts, prompt = 'Choose your answer:') {
+  return new Promise(res => {
+    vnOpen(); vnCh.innerHTML = '';
+    vnL.classList.remove('dim');
+    vnBox.classList.remove('narr', 'ready'); vnName.style.display = ''; vnName.textContent = S.name; vnName.style.background = CH.hero.c;
+    vnText.innerHTML = `<span style="color:var(--muted)">${prompt}</span>`;
+    if (!vnL.classList.contains('in')) setPt(vnL, 'hero', 'neutral');
+    opts.forEach((o, i) => {
+      const b = el('button', 'choice', T(o));
+      b.onclick = e => { e.stopPropagation(); SFX.click(); vnCh.innerHTML = ''; res(i); };
+      vnCh.appendChild(b);
+    });
+  });
+}
+/* grammar choice inside a dialogue: wrong answers get corrected by the NPC, then the player tries again */
+async function gchoice(npc, opts, emo = 'neutral') {
+  let first = true, left = opts.slice();
+  while (true) {
+    const order = shuffle(left);
+    const o = order[await choose(order.map(x => x.t))];
+    if (o.ok) { SFX.ok(); if (first) addStar(); await say('hero', o.emo || emo, o.t); return; }
+    SFX.bad(); first = false; left = left.filter(x => x !== o);
+    await say(npc, o.npcEmo || 'neutral', o.fix);
+  }
+}
+
+/* ---------- modal + task types ---------- */
+const modal = $('#modal');
+function openModal(html, cls = '') { modal.className = 'on'; modal.innerHTML = `<div class="panel ${cls}">${html}</div>`; return modal.firstChild; }
+function closeModal() { modal.className = ''; modal.innerHTML = ''; }
+const busyModal = () => modal.classList.contains('on') || busy;
+const gloss = s => T(s).replace(/\[\[([^|\]]+)\|([^\]]+)\]\]/g, '<span class="gl" data-d="$2">$1</span>');
+modal.addEventListener('click', e => { const g = e.target.closest('.gl'); $$('.gl.show', modal).forEach(x => x !== g && x.classList.remove('show')); if (g) g.classList.toggle('show'); });
+
+function tip(title, body) {
+  learnNote(title, body);
+  return new Promise(res => {
+    const p = openModal(`<div class="tiphead">📓 Grammar note</div><h2>${title}</h2><div class="tipbody">${body}</div><div class="row end"><button class="btn">Got it ›</button></div>`, 'tip');
+    $('.btn', p).onclick = () => { SFX.click(); closeModal(); toast('📓 Saved in your notebook'); res(); };
+  });
+}
+
+/* multiple choice, one question at a time. o[0] is always the correct answer */
+function gapTask({ title, icon = '✏️', intro, items, top = '', mount, cls = '' }) {
+  return new Promise(res => {
+    let k = 0;
+    const p = openModal(`<div class="thead"><span>${icon} ${title}</span><span class="dots"></span></div>${top}${intro ? `<p class="intro">${T(intro)}</p>` : ''}<div class="q"></div><div class="opts"></div><div class="fb"></div><div class="row end"><button class="btn next" style="visibility:hidden">Next ›</button></div>`, cls);
+    const dots = $('.dots', p), q = $('.q', p), op = $('.opts', p), fb = $('.fb', p), nx = $('.next', p);
+    if (mount) mount(p);
+    function render() {
+      const it = items[k]; let tries = 0;
+      dots.innerHTML = items.map((_, i) => `<i class="${i < k ? 'd' : i === k ? 'c' : ''}"></i>`).join('');
+      q.innerHTML = T(it.s).replace('___', '<span class="gap">_____</span>');
+      op.innerHTML = ''; fb.innerHTML = ''; fb.className = 'fb'; nx.style.visibility = 'hidden';
+      shuffle(it.o.map((t, i) => ({ t, i }))).forEach(({ t, i }) => {
+        const b = el('button', 'opt', T(t));
+        b.onclick = () => {
+          if (i === 0) {
+            SFX.ok(); b.classList.add('right');
+            const g = $('.gap', q); if (g) { g.textContent = T(t); g.classList.add('filled'); }
+            $$('button', op).forEach(x => x.disabled = true);
+            if (!tries) addStar();
+            fb.className = 'fb good'; fb.innerHTML = '✔ ' + (it.why || 'Correct!');
+            nx.style.visibility = 'visible'; nx.textContent = k === items.length - 1 ? 'Finish ✔' : 'Next ›';
+          } else {
+            SFX.bad(); tries++; b.classList.add('wrong'); b.disabled = true;
+            fb.className = 'fb bad'; fb.innerHTML = '✘ ' + (it.hint || 'Not quite. Try again.');
+          }
+        };
+        op.appendChild(b);
+      });
+    }
+    nx.onclick = () => { SFX.click(); k++; if (k < items.length) render(); else { closeModal(); res(); } };
+    render();
+  });
+}
+
+/* reading text + true/false statements */
+function readTask({ title, icon = '📖', doc, items }) {
+  return new Promise(res => {
+    const p = openModal(`<div class="thead"><span>${icon} ${title}</span><span style="color:var(--muted);letter-spacing:0;text-transform:none;font-size:15px">Tap the <u>dotted</u> words to see what they mean</span></div>
+      <div class="read"><div class="paper">${gloss(doc)}</div><div><p class="intro" style="margin-bottom:10px">True or false?</p><div class="st"></div></div></div>
+      <div class="row end"><button class="btn next" disabled>Continue ›</button></div>`, 'wide');
+    const box = $('.st', p), nx = $('.next', p); let left = items.length;
+    items.forEach(it => {
+      let tries = 0;
+      const d = el('div', 'stm', `<div class="s">${T(it.s)}</div><div class="b"></div><div class="w"></div>`);
+      [['True', true], ['False', false]].forEach(([lab, val]) => {
+        const b = el('button', 'opt', lab);
+        b.onclick = () => {
+          if (d.classList.contains('ok')) return;
+          if (val === it.a) { SFX.ok(); d.classList.add('ok'); b.classList.add('right'); if (!tries) addStar(); $('.w', d).textContent = '✔ ' + (it.why || ''); if (--left === 0) nx.disabled = false; }
+          else { SFX.bad(); tries++; b.classList.add('wrong'); setTimeout(() => b.classList.remove('wrong'), 400); $('.w', d).textContent = '✘ Read the text again.'; }
+        };
+        $('.b', d).appendChild(b);
+      });
+      box.appendChild(d);
+    });
+    nx.onclick = () => { SFX.click(); closeModal(); res(); };
+  });
+}
+
+/* match words to definitions */
+function matchTask({ title, icon = '🔤', intro, pairs }) {
+  return new Promise(res => {
+    const p = openModal(`<div class="thead"><span>${icon} ${title}</span></div>${intro ? `<p class="intro">${intro}</p>` : ''}<div class="match"><div class="cw" style="display:flex;flex-direction:column;gap:10px"></div><div class="cd" style="display:flex;flex-direction:column;gap:10px"></div></div><div class="row end"><button class="btn next" disabled>Continue ›</button></div>`);
+    const cw = $('.cw', p), cd = $('.cd', p), nx = $('.next', p);
+    let selW = null, left = pairs.length, miss = 0;
+    const tryPair = (w, d) => {
+      if (w.dataset.k === d.dataset.k) {
+        SFX.ok(); [w, d].forEach(x => { x.classList.remove('sel'); x.classList.add('ok'); x.disabled = true; });
+        if (!miss) addStar(); miss = 0; selW = null;
+        if (--left === 0) nx.disabled = false;
+      } else { SFX.bad(); miss++; [w, d].forEach(x => { x.classList.add('bad'); setTimeout(() => x.classList.remove('bad'), 400); }); }
+    };
+    shuffle(pairs.map((x, i) => [x, i])).forEach(([x, i]) => {
+      const b = el('button', 'mw', x[0]); b.dataset.k = i;
+      b.onclick = () => { if (b.disabled) return; SFX.click(); $$('.mw', p).forEach(z => z.classList.remove('sel')); b.classList.add('sel'); selW = b; };
+      cw.appendChild(b);
+    });
+    shuffle(pairs.map((x, i) => [x, i])).forEach(([x, i]) => {
+      const b = el('button', 'md', x[1]); b.dataset.k = i;
+      b.onclick = () => { if (b.disabled) return; if (!selW) { toast('First tap a word on the left'); return; } tryPair(selW, b); };
+      cd.appendChild(b);
+    });
+    nx.onclick = () => { SFX.click(); closeModal(); res(); };
+  });
+}
+
+/* build a sentence from words */
+function orderTask({ title, icon = '🧩', intro, items }) {
+  return new Promise(res => {
+    let k = 0;
+    const p = openModal(`<div class="thead"><span>${icon} ${title}</span><span class="dots"></span></div>${intro ? `<p class="intro">${intro}</p>` : ''}<div class="hint intro" style="color:var(--ink)"></div><div class="built"></div><div class="pool row"></div><div class="fb"></div><div class="row end"><button class="btn ghost undo">↺ Reset</button><button class="btn next" disabled>Check</button></div>`);
+    const dots = $('.dots', p), built = $('.built', p), pool = $('.pool', p), fb = $('.fb', p), nx = $('.next', p), hint = $('.hint', p);
+    let tries = 0, solved = false;
+    function render() {
+      const it = items[k]; tries = 0; solved = false;
+      dots.innerHTML = items.map((_, i) => `<i class="${i < k ? 'd' : i === k ? 'c' : ''}"></i>`).join('');
+      hint.textContent = it.hint || ''; built.innerHTML = ''; built.className = 'built'; pool.innerHTML = ''; fb.innerHTML = ''; fb.className = 'fb';
+      nx.textContent = 'Check'; nx.disabled = true;
+      let ws = it.a.replace(/[.!?]$/, '').split(' ');
+      let sh; do { sh = shuffle(ws); } while (ws.length > 2 && sh.join(' ') === ws.join(' '));
+      sh.forEach(w => {
+        const c = el('button', 'chip', w);
+        c.onclick = () => { if (solved) return; SFX.click(); (c.parentNode === pool ? built : pool).appendChild(c); nx.disabled = pool.children.length > 0; };
+        pool.appendChild(c);
+      });
+    }
+    $('.undo', p).onclick = () => { if (solved) return; SFX.click(); $$('.chip', built).forEach(c => pool.appendChild(c)); nx.disabled = true; };
+    nx.onclick = () => {
+      if (solved) { SFX.click(); k++; if (k < items.length) render(); else { closeModal(); res(); } return; }
+      const got = $$('.chip', built).map(c => c.textContent).join(' '), want = items[k].a.replace(/[.!?]$/, '');
+      if (got === want) { SFX.ok(); solved = true; built.className = 'built good'; if (!tries) addStar(); fb.className = 'fb good'; fb.innerHTML = '✔ ' + items[k].a; nx.textContent = k === items.length - 1 ? 'Finish ✔' : 'Next ›'; $('.undo', p).disabled = true; }
+      else { SFX.bad(); tries++; built.className = 'built bad'; fb.className = 'fb bad'; fb.innerHTML = '✘ Not quite. Tap the words to move them back and try again.'; }
+      setTimeout(() => $('.undo', p).disabled = solved, 0);
+    };
+    render();
+  });
+}
+
+/* speaking with speech recognition (nothing is recorded or saved) */
+function speakTask({ title = 'Speaking', line, note, male = true }) {
+  return new Promise(res => {
+    const can = !!SR;
+    const p = openModal(`<div class="thead"><span>🎤 ${title}</span></div>${note ? `<p class="intro" style="text-align:center">${T(note)}</p>` : ''}<div class="say">“${T(line)}”</div>
+      <div class="saynote">${can ? 'Tap 🔊 to listen, then tap the microphone and say the sentence.' : 'Tap 🔊 to listen. Your browser cannot hear you, so say the sentence out loud and tap “I said it”.'}</div>
+      <div class="row" style="justify-content:center;gap:26px"><button class="btn ghost lis">🔊 Listen</button>${can ? '<button class="mic">🎤</button>' : ''}</div>
+      <div class="heard"></div><div class="row end"><button class="btn ghost skip" style="display:${can ? 'none' : ''}">I said it ›</button><button class="btn next" style="display:none">Continue ›</button></div>`);
+    const heard = $('.heard', p), nx = $('.next', p), sk = $('.skip', p), mic = $('.mic', p);
+    let fails = 0, busyMic = false;
+    $('.lis', p).onclick = () => speak(T(line), { male, rate: .85 });
+    if (mic) mic.onclick = async () => {
+      if (busyMic) return; busyMic = true; mic.classList.add('rec'); heard.innerHTML = '<span style="color:var(--muted)">Listening… speak now</span>';
+      if (window.speechSynthesis) speechSynthesis.cancel();
+      const alts = await listenOnce(); mic.classList.remove('rec'); busyMic = false;
+      if (alts === null) { heard.innerHTML = '<span class="bad">The microphone is blocked. Say it out loud and tap “I said it”.</span>'; sk.style.display = ''; return; }
+      if (!alts.length) { heard.innerHTML = '<span class="bad">I didn’t hear anything. Try again, a bit louder.</span>'; if (++fails >= 2) sk.style.display = ''; return; }
+      const best = alts.map(a => [a, matchScore(T(line), a)]).sort((a, b) => b[1] - a[1])[0];
+      if (best[1] >= .7) { SFX.ok(); addStar(); heard.innerHTML = `<span class="good">✔ Great! I heard: “${best[0]}”</span>`; mic.disabled = true; sk.style.display = 'none'; nx.style.display = ''; }
+      else { SFX.bad(); heard.innerHTML = `<span class="bad">I heard: “${best[0]}”. Try again!</span>`; if (++fails >= 2) sk.style.display = ''; }
+    };
+    sk.onclick = () => { SFX.click(); closeModal(); res(); };
+    nx.onclick = () => { SFX.click(); closeModal(); res(); };
+  });
+}
+
+/* radio message: listen (text-to-speech) then answer questions */
+function radioTask({ title, script, items }) {
+  let played = false;
+  const top = `<div class="radio"><div style="font-size:44px">📻</div><div class="wave">${'<i></i>'.repeat(26)}</div><button class="btn play">▶ Play</button></div>
+    <div class="row" style="margin-bottom:10px"><button class="btn ghost tr" style="font-size:16px;padding:8px 16px">📄 Show the text</button><span style="color:var(--muted);font-weight:700">Listen first. You can play it again.</span></div><div class="transcript">${script}</div>`;
+  return gapTask({
+    title, icon: '📻', top, items, cls: 'wide',
+    mount: p => {
+      const radio = $('.radio', p);
+      $$('.wave i', p).forEach((i, n) => i.style.animationDelay = (n % 7) * .07 + 's');
+      $('.play', p).onclick = async () => {
+        SFX.radio(.8); radio.classList.add('play'); await sleep(700);
+        await speak(script, { male: true, rate: .88, pitch: .85 });
+        radio.classList.remove('play'); SFX.radio(.5); played = true;
+      };
+      $('.tr', p).onclick = () => { $('.transcript', p).classList.toggle('on'); };
+    }
+  });
+}
+
+/* danger: a walker is coming, answer quickly */
+function dangerTask({ zombie, who = 'maya', items, time = 14 }) {
+  return new Promise(res => {
+    const box = $('#danger'), dq = $('#dq'), dz = $('#dz');
+    dz.src = A[zombie]; box.classList.add('on');
+    let queue = items.slice(), dist = 1, need = items.length, got = 0, timer = null;
+    const setDist = () => { dz.style.height = [360, 470, 590, 700][Math.min(dist, 3)] + 'px'; dz.style.filter = `brightness(${.7 + dist * .08})`; };
+    setDist(); SFX.growl();
+    function next() {
+      if (got >= need) { clearInterval(timer); box.classList.remove('on'); return res(); }
+      const it = queue.shift(); let t0 = Date.now(), answered = false;
+      dq.innerHTML = `<div id="dprog">${got}/${need}</div><div class="who">${CH[who].n()} shouts:</div><div class="q">${T(it.s).replace('___', '<span class="gap">_____</span>')}</div><div class="opts"></div><div id="dbar"><i></i></div>`;
+      const op = $('.opts', dq), bar = $('#dbar i');
+      shuffle(it.o.map((t, i) => ({ t, i }))).forEach(({ t, i }) => {
+        const b = el('button', 'opt', t);
+        b.onclick = () => { if (answered) return; answered = true; clearInterval(timer); i === 0 ? good(b, t) : bad(b, it); };
+        op.appendChild(b);
+      });
+      clearInterval(timer);
+      timer = setInterval(() => {
+        const r = 1 - (Date.now() - t0) / (time * 1000); bar.style.width = Math.max(0, r * 100) + '%';
+        if (r <= 0 && !answered) { answered = true; clearInterval(timer); bad(null, it); }
+      }, 50);
+      async function good(b, t) {
+        SFX.ok(); b.classList.add('right'); $('.gap', dq).textContent = t; $('.gap', dq).classList.add('filled');
+        got++; addStar(); dist = Math.max(0, dist - 1); setDist(); await sleep(900); next();
+      }
+      async function bad(b, it) {
+        if (b) b.classList.add('wrong');
+        SFX.growl(); SFX.hurt(); dist++; setDist(); S.hearts--; renderHUD();
+        $('.opts', dq).insertAdjacentHTML('afterend', `<div class="fb bad">✘ ${b ? '' : 'Too slow! '}${it.why}</div>`);
+        queue.push(it);
+        await sleep(1900);
+        if (S.hearts <= 0) {
+          dq.innerHTML = `<div class="q" style="color:#ff8a70">The walker grabs your arm!</div><p class="intro">${CH[who].n()} pulls you back just in time. Take a breath and try again.</p><div class="row end"><button class="btn">Try again</button></div>`;
+          await new Promise(r => $('.btn', dq).onclick = r);
+          S.hearts = 3; renderHUD(); dist = 1; setDist(); queue = items.slice(); got = 0;
+        } else if (dist >= 3) { dist = 2; setDist(); }
+        next();
+      }
+    }
+    next();
+  });
+}
+
+/* ---------- narration screen ---------- */
+async function narration(lines) {
+  show('narr'); const tx = $('#narr .txt'), scr = $('#narr');
+  for (const l of lines) {
+    tx.style.opacity = 0; await sleep(250); tx.innerHTML = T(l); tx.style.transition = 'opacity .6s'; tx.style.opacity = 1;
+    await new Promise(r => { const h = () => { scr.removeEventListener('click', h); SFX.click(); r(); }; setTimeout(() => scr.addEventListener('click', h), 300); });
+  }
+}
+async function fade(fn) { const f = $('#fade'); f.classList.add('on'); await sleep(480); await fn(); await sleep(60); f.classList.remove('on'); await sleep(300); }
+
+/* ---------- world: scenes, walking, hotspots ---------- */
+const world = $('#world');
+let scene = null, sceneId = '', hero = null, pal = null, busy = false, npcs = {};
+function setBusy(v) { busy = v; $('#game').classList.toggle('cut', v); }
+const lerp = (a, b, t) => a + (b - a) * t;
+function scaleAt(y) { const f = scene.floor; return lerp(f.s0 || .82, f.s1 || 1, Math.max(0, Math.min(1, (y - f.y0) / (f.y1 - f.y0)))); }
+function makeActor(src, h, x, y, cls = '') {
+  const e = el('div', 'actor ' + cls); const i = el('img'); i.src = src; i.draggable = false; e.appendChild(i); world.appendChild(e);
+  const a = { el: e, img: i, h, x, y, face: 1 }; place(a); return a;
+}
+function place(a) {
+  const s = scaleAt(a.y);
+  a.el.style.left = a.x + 'px'; a.el.style.top = a.y + 'px'; a.el.style.zIndex = Math.round(a.y);
+  a.img.style.height = a.h * s + 'px'; a.img.style.transform = `scaleX(${a.face})`;
+}
+function walk(a, x, y, speed = 300, free = false) {
+  return new Promise(res => {
+    const f = scene.floor;
+    if (!free) { x = Math.max(f.x0, Math.min(f.x1, x)); y = Math.max(f.y0, Math.min(f.y1, y)); }
+    a.token = (a.token || 0) + 1; const tok = a.token;
+    const sx = a.x, sy = a.y, d = Math.hypot(x - sx, y - sy);
+    if (d < 4) return res();
+    if (Math.abs(x - sx) > 3) a.face = x > sx ? 1 : -1;
+    a.el.classList.add('walk');
+    const t0 = performance.now(), dur = d / speed * 1000;
+    const step = now => {
+      if (a.token !== tok) return res();
+      const t = Math.min(1, (now - t0) / dur);
+      a.x = sx + (x - sx) * t; a.y = sy + (y - sy) * t; place(a);
+      if (a === hero) follow();
+      if (t < 1) requestAnimationFrame(step); else { a.el.classList.remove('walk'); if (a === hero && pal) settle(); res(); }
+    };
+    requestAnimationFrame(step);
+  });
+}
+function follow() {
+  if (!pal) return;
+  const tx = hero.x - 120 * hero.face, ty = Math.max(scene.floor.y0, hero.y - 14);
+  const dx = tx - pal.x, dy = ty - pal.y, d = Math.hypot(dx, dy);
+  if (d > 30) { const k = Math.min(1, (d - 30) / d) * .12; pal.x += dx * k; pal.y += dy * k; pal.face = hero.face; pal.el.classList.add('walk'); place(pal); }
+}
+function settle() {
+  const loop = () => { if (!pal || hero.el.classList.contains('walk')) return; const before = [pal.x, pal.y]; follow(); if (Math.hypot(pal.x - before[0], pal.y - before[1]) < .4) { pal.el.classList.remove('walk'); return; } requestAnimationFrame(loop); };
+  requestAnimationFrame(loop);
+}
+function heroFace(x) { if (Math.abs(x - hero.x) > 10) { hero.face = x > hero.x ? 1 : -1; place(hero); } }
+
+function buildSpots() {
+  $$('.spot', world).forEach(s => s.remove());
+  (scene.spots || []).forEach(sp => {
+    if (sp.when && !sp.when()) return;
+    const d = el('div', 'spot' + (sp.exit ? ' exit' : '') + (sp.done && sp.done() ? ' done' : ''), `<div class="ic">${sp.done && sp.done() ? '✔' : sp.icon}</div><div class="lb">${sp.label}</div>`);
+    d.style.left = sp.x + 'px'; d.style.top = sp.y + 'px';
+    d.onclick = async e => {
+      e.stopPropagation(); if (busy || busyModal()) return; SFX.click();
+      setBusy(true);
+      try { const w = sp.walk || { x: sp.x, y: scene.floor.y1 - 20 }; await walk(hero, w.x, w.y); heroFace(sp.x); await sp.act(); }
+      finally { vnClose(); setBusy(false); if (scene) buildSpots(); }
+    };
+    world.appendChild(d);
+  });
+}
+world.addEventListener('click', e => {
+  if (busy || busyModal() || !scene) return;
+  const p = stagePoint(e), f = scene.floor;
+  if (p.y < f.y0 - 60) return;
+  const fx = el('div', 'tapfx'); fx.style.left = Math.max(f.x0, Math.min(f.x1, p.x)) + 'px'; fx.style.top = Math.max(f.y0, Math.min(f.y1, p.y)) + 'px'; world.appendChild(fx); setTimeout(() => fx.remove(), 520);
+  walk(hero, p.x, p.y);
+});
+
+async function goScene(id) {
+  await fade(async () => {
+    vnClose(); world.innerHTML = ''; npcs = {};
+    scene = SCENES[id]; sceneId = id;
+    $('#bg').style.backgroundImage = `url(${A[scene.bg]})`;
+    $('#dark').style.opacity = scene.dark != null ? scene.dark : 1;
+    const st = scene.start;
+    hero = makeActor(A.hero_m_side, 340, st.x, st.y); hero.face = st.face || 1; place(hero);
+    pal = S.follow ? makeActor(A[S.follow + '_side'], 330, st.x - 120 * hero.face, st.y - 14) : null;
+    if (pal) { pal.face = hero.face; place(pal); }
+    setObj(''); buildSpots(); show('game'); renderHUD();
+  });
+  setBusy(true);
+  try { if (scene.enter) await scene.enter(); } finally { vnClose(); setBusy(false); buildSpots(); }
+}
+function addNPC(id, key, emo, x, y, h = 350) {
+  const a = makeActor(A[`${key}_${emo}`], h, x, y, 'npc'); npcs[id] = a; return a;
+}
+function removeNPC(id) { if (npcs[id]) { npcs[id].el.remove(); delete npcs[id]; } }
+
+/* ============================================================
+   CHAPTER 1 — WAKE UP
+   Grammar: Present Continuous, there is / there are,
+            Present Simple vs Continuous, imperatives
+   ============================================================ */
+const G = {
+  pc: ['Present Continuous', `We use the Present Continuous for actions that are happening <b>now</b>.
+    <div class="ex">Form: <b>am / is / are + verb-ing</b></div>
+    I <b>am looking</b> out of the window. A car <b>is burning</b>. Two dogs <b>are running</b>.
+    <div class="ex">Negative: Nobody <b>is walking</b>. He <b>isn't moving</b>.<br>Question: <b>Is</b> it <b>moving</b>?</div>
+    Spelling: run → run<b>n</b>ing, move → mov<b>ing</b>, lie → l<b>ying</b>`],
+  there: ['There is / There are', `Use <b>there is / there are</b> to say that something exists or is in a place.
+    <div class="ex"><b>There is</b> + one thing: There is a bandage.<br><b>There are</b> + two or more: There are two batteries.</div>
+    <div class="ex">Negative: There <b>isn't</b> any water. There <b>aren't</b> any bottles.<br>Question: <b>Is there</b> any food? — Yes, there is. / No, there isn't.</div>`],
+  psc: ['Present Simple vs Continuous', `<b>Present Simple</b> — habits, facts, things that are always true.
+    <div class="ex">Walkers <b>sleep</b> in the day. They <b>don't like</b> light.</div>
+    <b>Present Continuous</b> — actions happening right now.
+    <div class="ex">Look! It <b>is coming</b> this way!</div>
+    Signal words: <b>usually, always, every day, never</b> → Simple. <b>now, right now, Look! Listen!</b> → Continuous.<br>
+    Some verbs are almost never in the Continuous: <b>like, hate, know, want, need</b>.
+    <div class="ex"><span class="no">✘ They aren't liking light.</span> &nbsp; <span class="yes">✔ They don't like light.</span></div>`],
+  imp: ['Imperatives', `We use imperatives for orders, instructions and warnings.
+    <div class="ex">Positive: <b>base verb</b> — Run! Hide! Stand still!<br>Negative: <b>Don't + base verb</b> — Don't move! Don't make a sound!</div>
+    There is no subject: <span class="no">✘ You run!</span> <span class="yes">✔ Run!</span>`]
+};
+const WORDS1 = [
+  ['ward', 'a room in a hospital with beds for patients'], ['corridor', 'a long, narrow passage between rooms'],
+  ['stretcher', 'a flat bed for carrying a sick person'], ['wheelchair', "a chair with wheels for people who can't walk"],
+  ['bandage', 'a long piece of cloth to cover a wound'], ['exit', 'the door you use to leave a building'],
+  ['survivor', 'a person who is still alive after something terrible'], ['walker', 'what survivors call a zombie'],
+  ['coma', 'a very long, deep sleep after an accident or illness'], ['bite', 'to use your teeth to cut into something'],
+  ['whisper', 'to speak very quietly'], ['flashlight', 'a small electric light you carry in your hand'],
+  ['flicker', 'to go on and off quickly (a light)'], ['hide', 'to go where nobody can see you']
+];
+
+const SCENES = {
+  /* ---------- the ward ---------- */
+  ward: {
+    bg: 'bg_hospital_ward', floor: { x0: 80, x1: 1200, y0: 632, y1: 712, s0: .9, s1: 1 }, start: { x: 230, y: 690 },
+    spots: [
+      { id: 'window', x: 640, y: 190, icon: '🔍', label: 'Window', walk: { x: 640, y: 650 }, done: () => S.f.window, act: wardWindow },
+      { id: 'note', x: 450, y: 370, icon: '📝', label: 'Note', walk: { x: 460, y: 680 }, done: () => S.f.note, act: wardNote },
+      { id: 'cab', x: 1150, y: 290, icon: '✋', label: 'Cabinet', walk: { x: 1080, y: 690 }, done: () => S.f.cab, act: wardCabinet },
+      { id: 'door', x: 1045, y: 200, icon: '🚪', label: 'Door', exit: true, walk: { x: 1010, y: 650 }, act: wardDoor }
+    ],
+    async enter() {
+      if (S.f.woke) { setObj('Leave the room.'); return; }
+      S.f.woke = true;
+      await narr('You open your eyes. A white ceiling. Broken lights. Your head hurts.');
+      await say('hero', 'scared', 'Ugh... my head... Where am I?');
+      await say('hero', 'scared', "Is this a hospital? Why is it so quiet?");
+      await say('hero', 'neutral', 'Maybe somebody is outside. I need to call for help.');
+      vnClose();
+      await speakTask({ title: 'Call for help', line: 'Hello? Is anybody here?', note: 'Say it out loud!' });
+      await narr('Nobody answers. Only the wind is moving the old curtains.');
+      await say('hero', 'sad', "OK... Don't panic. Let's look around.");
+      vnClose();
+      setObj('Explore the room: the window, the note and the cabinet.');
+      toast('👆 Tap the floor to walk. Tap the icons to look at things.');
+    }
+  },
+  /* ---------- the corridor ---------- */
+  corridor: {
+    bg: 'bg_hospital_corridor', floor: { x0: 90, x1: 1190, y0: 585, y1: 712, s0: .8, s1: 1 }, start: { x: 130, y: 690 },
+    spots: [
+      { id: 'noise', x: 990, y: 250, icon: '👂', label: 'Strange noise', walk: { x: 900, y: 640 }, when: () => !S.f.maya, act: corridorMaya },
+      { id: 'trolley', x: 905, y: 420, icon: '✋', label: 'Trolley', walk: { x: 880, y: 660 }, when: () => S.f.maya, done: () => S.f.card, act: corridorTrolley },
+      { id: 'exit', x: 640, y: 265, icon: '🚪', label: 'Exit', exit: true, walk: { x: 640, y: 600 }, when: () => S.f.maya, act: corridorExit }
+    ],
+    async enter() {
+      if (S.f.maya) { setObj(S.f.card ? 'Open the exit door.' : 'Find a key card.'); return; }
+      await narr('The corridor is long and dark. The lights are flickering. Somewhere, water is dripping.');
+      await say('hero', 'scared', 'Hello? Dr. Chen? Are you here?');
+      vnClose(); setObj('Find Dr. Maya Chen.');
+    }
+  },
+  /* ---------- the street ---------- */
+  street: {
+    bg: 'bg_hospital_street', floor: { x0: 60, x1: 1210, y0: 585, y1: 712, s0: .82, s1: 1 }, start: { x: 300, y: 640 }, dark: .6,
+    spots: [
+      { id: 'amb', x: 790, y: 360, icon: '✋', label: 'Ambulance', walk: { x: 760, y: 610 }, done: () => S.f.radio, act: streetAmbulance },
+      { id: 'go', x: 1170, y: 520, icon: '➜', label: 'To the supermarket', exit: true, walk: { x: 1150, y: 640 }, when: () => S.f.radio, act: streetEnd }
+    ],
+    async enter() {
+      await narr('Fresh air. A grey sky. The city is silent — no cars, no people, no music.');
+      await say('maya', 'sad', 'This is Greyhaven now. Every street looks like this.');
+      await say('hero', 'sad', 'Where are all the people?');
+      await say('maya', 'sad', "Some are hiding. Some are... walkers now.");
+      await say('maya', 'neutral', 'Outside we must be very quiet. Walkers hear everything. Let’s practise. Say it quietly, like me:');
+      vnClose();
+      await speakTask({ title: 'Whisper', line: 'We need to find a safe place.', note: 'Whisper the sentence (quietly, but clearly!)', male: false });
+      await say('maya', 'happy', 'Good. Very good.');
+      await say('maya', 'neutral', 'Look — that ambulance. The doors are open. Maybe there is something useful inside.');
+      vnClose(); setObj('Search the ambulance.');
+    }
+  }
+};
+
+/* ---------- ward actions ---------- */
+async function wardWindow() {
+  await say('hero', 'scared', 'The window is broken. Let me look outside...');
+  vnClose();
+  await tip(...G.pc);
+  await gapTask({
+    title: 'What is happening outside?', icon: '🪟', intro: 'You are looking out of the window right now. Complete the sentences.',
+    items: [
+      { s: 'Black smoke ___ into the sky.', o: ['is rising', 'rises', 'rising'], why: 'It is happening now: is + rising.', hint: 'Remember: am / is / are + -ing.' },
+      { s: 'Two dogs ___ along the empty street.', o: ['are running', 'is running', 'runs'], why: 'Two dogs = they → are running.', hint: 'Two dogs = they. They are / is...?' },
+      { s: 'A car alarm ___ somewhere far away.', o: ['is ringing', 'are ringing', 'ring'], why: 'One alarm = it → is ringing.', hint: 'One alarm = it.' },
+      { s: 'Nobody ___ in the park.', o: ['is walking', 'are walking', 'walking'], why: '"Nobody" takes a singular verb: is walking.', hint: '"Nobody" is singular.' },
+      { s: 'Wait... something ___ near the bus stop.', o: ['is moving', 'moves', 'are moving'], why: 'Right now → is moving.', hint: 'Is it happening now?' }
+    ]
+  });
+  await say('hero', 'scared', "Something is moving near the bus stop... It's a man. But he isn't walking like a normal person.");
+  await say('hero', 'scared', "He's... he's biting a dog?! What is happening in this city?");
+  S.f.window = true; await afterWard();
+}
+async function wardNote() {
+  await say('hero', 'neutral', "There's a note on the bed. It says 'Room 12'... That's my room. It's for me!");
+  vnClose();
+  await readTask({
+    title: "Maya's note", icon: '📝',
+    doc: `<p>To the patient in Room 12,</p>
+      <p>If you are reading this, you are awake. Good! My name is Dr. Maya Chen. I work in this hospital.</p>
+      <p>Please listen to me. The city is not safe now. Many people are sick. They don't think and they don't talk — they just walk and [[bite|use their teeth to hurt you]]. They hear everything, so be very quiet. They [[hate|really don't like]] bright light.</p>
+      <p>Right now I am [[hiding|staying where nobody can see me]] on the second floor. Every evening I check the rooms on this floor for [[survivors|people who are still alive]].</p>
+      <p>Don't go outside alone. Find me!</p><p>— Dr. Maya Chen</p>`,
+    items: [
+      { s: 'Maya is a doctor.', a: true, why: '"Dr. Maya Chen... I work in this hospital."' },
+      { s: 'Maya is hiding on the first floor.', a: false, why: 'She is hiding on the SECOND floor.' },
+      { s: 'The sick people can talk.', a: false, why: '"They don\'t think and they don\'t talk."' },
+      { s: 'The sick people hear very well.', a: true, why: '"They hear everything."' },
+      { s: 'Maya checks the rooms every morning.', a: false, why: 'She checks the rooms every EVENING.' }
+    ]
+  });
+  addItem('note');
+  await say('hero', 'scared', 'Sick people who bite? This is crazy...');
+  await say('hero', 'neutral', 'Dr. Maya Chen. I need to find her.');
+  S.f.note = true; await afterWard();
+}
+async function wardCabinet() {
+  await say('hero', 'neutral', "An old medicine cabinet. Let's see what's inside.");
+  vnClose();
+  await tip(...G.there);
+  await gapTask({
+    title: 'What is in the cabinet?', icon: '🗄️',
+    intro: 'Inside the cabinet: 🩹 one bandage · 💊 some pills · 🔦 one flashlight · 🔋 two batteries · 🚫💧 no water',
+    items: [
+      { s: 'There ___ a bandage on the top shelf.', o: ['is', 'are', 'be'], why: 'One bandage → there is.', hint: 'One thing or many things?' },
+      { s: 'There ___ some pills in a small box.', o: ['are', 'is', 'am'], why: 'Pills (plural) → there are.', hint: '"Pills" is plural.' },
+      { s: 'There ___ two batteries next to the flashlight.', o: ['are', 'is', "isn't"], why: 'Two batteries → there are.' },
+      { s: "There ___ any water. I'm so thirsty!", o: ["isn't", "aren't", 'is'], why: 'Water is uncountable → there isn\'t any water.', hint: 'There is no water. Water is uncountable.' },
+      { s: '"___ there any food?" — "No, there isn\'t."', o: ['Is', 'Are', 'Does'], why: 'Question: Is there...? — No, there isn\'t.', hint: 'Look at the answer: "No, there isn\'t."' }
+    ]
+  });
+  addItem('flashlight'); await sleep(400); addItem('bandage'); S.bag.push('batteries');
+  await say('hero', 'happy', 'A flashlight and batteries! This can be useful.');
+  S.f.cab = true; await afterWard();
+}
+async function afterWard() {
+  const n = ['window', 'note', 'cab'].filter(k => S.f[k]).length;
+  vnClose();
+  if (n < 3) setObj(`Explore the room (${n}/3).`);
+  else { setObj('Leave the room. Find Dr. Maya Chen.'); await say('hero', 'neutral', "OK. I know enough. Let's go and find this doctor."); }
+}
+async function wardDoor() {
+  if (!(S.f.window && S.f.note && S.f.cab)) { await say('hero', 'neutral', 'Wait. I should look around the room first.'); return; }
+  SFX.door(); await goScene('corridor');
+}
+
+/* ---------- corridor actions ---------- */
+async function corridorMaya() {
+  await narr('Behind a door, something falls on the floor. Then — footsteps. Somebody is coming.');
+  vnClose();
+  const m = addNPC('maya', 'maya', 'scared', 1260, 660);
+  await walk(m, 1040, 660, 220, true); m.face = -1;
+  await say('maya', 'scared', "Stop! Don't move!");
+  await say('maya', 'scared', 'Who are you? Can you talk?');
+  await gchoice('maya', [
+    { t: "Yes, I can! I'm {name}. I'm from Room 12.", ok: true, emo: 'scared' },
+    { t: 'Yes, I can! I {name}. I from Room 12.', fix: "Hmm... You mean \"I'm {name}. I'm from Room 12\"? Don't forget the verb 'be'! Try again." },
+    { t: 'Yes, I can! I is {name}. I is from Room 12.', fix: "'I is'? We say 'I am' — or 'I'm'. Try again, slowly." }
+  ]);
+  await say('maya', 'happy', "Oh, thank God. You're awake! And you're normal!");
+  await say('maya', 'neutral', "I'm Maya — Maya Chen. I'm a doctor here. Well... I was a doctor.");
+  await gchoice('maya', [
+    { t: "What's happening in this city?", ok: true, emo: 'scared' },
+    { t: 'What happening in this city?', fix: "Almost! Don't forget 'is': What IS happening? Or: What's happening?" },
+    { t: 'What does happening in this city?', fix: "Hmm, no 'does' here. We say: What is happening? Try again." }
+  ]);
+  await say('maya', 'sad', 'People are sick. It started three months ago. You were in a coma, so you don’t remember.');
+  await say('maya', 'sad', "The sick people... they walk, they bite, and they don't stop. We call them 'walkers'.");
+  await say('maya', 'neutral', 'How do you feel? Can you walk?');
+  await gchoice('maya', [
+    { t: 'I feel tired, but I can walk.', ok: true, emo: 'neutral' },
+    { t: 'I am feel tired, but I can walk.', fix: "Just 'I feel tired'. No 'am' before 'feel'." },
+    { t: 'I feeling tired, but I can walk.', fix: "You mean 'I feel tired' — or 'I'm feeling tired'." }
+  ]);
+  await say('maya', 'neutral', 'Good. Now listen to me carefully. There are some rules. You need to know them.');
+  vnClose();
+  await tip(...G.psc);
+  await gapTask({
+    title: "Maya's rules", icon: '☝️', intro: 'Maya is telling you about the walkers. Choose the correct form.',
+    items: [
+      { s: 'Walkers usually ___ during the day.', o: ['sleep', 'are sleeping', 'sleeps'], why: '"Usually" = a habit → Present Simple.', hint: 'Look at the word "usually".' },
+      { s: 'They ___ for food at night.', o: ['hunt', 'are hunting', 'hunts'], why: 'Something they do every night → Present Simple.' },
+      { s: 'They ___ bright light.', o: ["don't like", "aren't liking", "doesn't like"], why: '"Like" is a state verb — no -ing.', hint: '"Like" is almost never in the Continuous.' },
+      { s: 'Shh! Listen! Something ___ behind that door.', o: ['is moving', 'moves', 'move'], why: '"Listen!" = right now → Present Continuous.', hint: 'Is it happening now?' },
+      { s: 'Oh no... It ___ this way right now!', o: ['is coming', 'comes', 'come'], why: '"Right now" → Present Continuous.', hint: 'Look at "right now".' }
+    ]
+  });
+  await narr('Slow, heavy steps behind you. A low, wet growl...');
+  const z = makeActor(A.zombie_nurse, 360, -80, 650, 'zombie');
+  SFX.growl(); await walk(z, 230, 650, 110, true); z.el.classList.add('walk');
+  heroFace(0);
+  await say('maya', 'scared', 'Oh no. Look behind you!');
+  await say('hero', 'scared', "It's a nurse... and she's coming towards us!");
+  await say('maya', 'scared', "Don't panic! Listen to me and do exactly what I say!");
+  vnClose();
+  await tip(...G.imp);
+  z.el.style.visibility = 'hidden';
+  await dangerTask({
+    zombie: 'zombie_nurse',
+    items: [
+      { s: "It can't see well. ___ still!", o: ['Stand', 'Standing', 'To stand'], why: 'Imperative = base verb: Stand still!' },
+      { s: '___ a sound!', o: ["Don't make", 'Not make', 'No make'], why: "Negative imperative: Don't + verb." },
+      { s: 'Your flashlight! ___ it on!', o: ['Turn', 'Turns', 'Turning'], why: 'Imperative = base verb: Turn it on!' },
+      { s: '___ it at her face!', o: ['Point', 'You pointing', 'Points'], why: 'No subject, base verb: Point it!' },
+      { s: "___ run yet... wait... NOW! Run!", o: ["Don't", 'Not', 'No'], why: "Don't + verb: Don't run yet!" }
+    ]
+  });
+  await narr('You point the flashlight at the walker’s face. She screams, covers her eyes and runs back into the dark.');
+  z.el.style.visibility = ''; z.el.classList.add('walk'); z.face = -1; place(z); await walk(z, -150, 640, 260, true); z.el.remove();
+  await say('maya', 'happy', "It's gone! Light — they hate it. Good job, {name}!");
+  await say('hero', 'scared', 'My heart is beating so fast...');
+  await say('maya', 'neutral', "We can't stay here. The exit is at the end of the corridor, but the door is locked. We need a key card.");
+  await say('maya', 'neutral', "There's a nurse's trolley over there. Maybe there's a card in it. And from now on — we stay together.");
+  vnClose();
+  removeNPC('maya'); S.follow = 'maya';
+  pal = makeActor(A.maya_side, 330, 1040, 650); pal.face = -1; place(pal);
+  S.f.maya = true; setObj('Find a key card.');
+}
+async function corridorTrolley() {
+  if (S.f.card) { await say('hero', 'neutral', "There's nothing else here."); return; }
+  await say('hero', 'neutral', "The trolley drawer is full of papers and labels. What a mess!");
+  await say('maya', 'neutral', 'Help me put the labels in order. In a hospital you must find things quickly.');
+  vnClose();
+  learnWords(WORDS1);
+  await matchTask({
+    title: 'Hospital words', icon: '🏥', intro: 'Tap a word, then tap its meaning.',
+    pairs: WORDS1.slice(0, 6)
+  });
+  await narr('Under the labels there is a plastic card with a photo: “Nurse P. Kowalski — Staff”.');
+  addItem('keycard');
+  await say('maya', 'sad', 'Paula... She was a good nurse. And a good friend.');
+  await say('maya', 'neutral', "Let's go. The exit is straight ahead.");
+  S.f.card = true; vnClose(); setObj('Open the exit door.');
+}
+async function corridorExit() {
+  if (!S.f.card) { await say('hero', 'neutral', "It's locked. There's a card reader next to the door. We need a key card."); return; }
+  SFX.beep(); await narr('Beep. The little light turns green. The heavy door opens.');
+  await goScene('street');
+}
+
+/* ---------- street actions ---------- */
+async function streetAmbulance() {
+  if (S.f.radio) { await say('hero', 'neutral', 'The ambulance is empty now.'); return; }
+  await say('hero', 'neutral', "There's a walkie-talkie on the seat!");
+  addItem('radio');
+  SFX.radio(1.2);
+  await say('hero', 'scared', 'It still works... Listen! Somebody is talking!');
+  vnClose();
+  await radioTask({
+    title: 'A message on the radio',
+    script: 'Hello? Is anybody out there? This is Jake. We are at Northfield School, on the north side of the city. There are twenty people here. We have water and a safe place to sleep, but we don’t have a doctor, and we don’t have enough food. If you can hear this, come to the school. Don’t travel at night — the walkers hunt in the dark. We check the radio every morning at eight. Over.',
+    items: [
+      { s: 'Where is the camp?', o: ['At a school in the north', 'At the hospital', 'At a supermarket'] },
+      { s: 'How many people are there?', o: ['Twenty', 'Twelve', 'Two'] },
+      { s: "What DON'T they have?", o: ['A doctor', 'Water', 'A place to sleep'] },
+      { s: 'When is it dangerous to travel?', o: ['At night', 'In the morning', 'At eight o’clock'] },
+      { s: 'When does Jake check the radio?', o: ['Every morning at eight', 'Every evening', 'Every hour'] }
+    ]
+  });
+  await say('maya', 'happy', "A camp! Other survivors! And they need a doctor — that's me!");
+  await say('maya', 'sad', "But Northfield is far from here. And we don't have any food or water.");
+  await gchoice('maya', [
+    { t: 'Is there a shop near here?', ok: true },
+    { t: 'Are there a shop near here?', fix: "One shop → 'Is there a shop...?'" },
+    { t: 'There is a shop near here?', fix: "For a question, start with 'Is there...?'" }
+  ]);
+  await say('maya', 'neutral', 'Yes, there is. There’s a big supermarket two streets from here. Let’s go there first.');
+  S.f.radio = true; vnClose(); setObj('Go to the supermarket.');
+}
+async function streetEnd() {
+  await say('hero', 'neutral', "Before we go, let's remember the rules.");
+  vnClose();
+  await orderTask({
+    title: 'Remember the rules', intro: 'Put the words in the correct order.',
+    items: [
+      { a: 'Walkers hunt at night.' },
+      { a: "Don't make a sound." },
+      { a: 'There are twenty people at the camp.' },
+      { a: 'Maya is looking at the map.' }
+    ]
+  });
+  learnWords(WORDS1);
+  await say('maya', 'neutral', 'Ready? Stay close to me. And keep your flashlight ready.');
+  vnClose();
+  await walk(hero, 1340, 650, 260, true);
+  await chapterEnd();
+}
+
+async function chapterEnd() {
+  save();
+  await fade(async () => {
+    const e = $('#endScr'); e.style.backgroundImage = `url(${A.bg_supermarket})`;
+    $('.box', e).innerHTML = `<div class="sub">Chapter 1 complete</div><h2>WAKE UP</h2>
+      <div class="sum">
+        <div><h4>Your score</h4><div class="big">⭐ ${S.stars}</div><p style="color:var(--muted);font-weight:700;margin:4px 0 0">Stars for correct answers on the first try.</p></div>
+        <div><h4>Grammar</h4><ul>${S.notes.map(n => `<li>${n.t}</li>`).join('')}</ul></div>
+        <div><h4>New words</h4><p style="font-weight:800;line-height:1.5;margin:0">${WORDS1.map(w => w[0]).join(', ')}</p></div>
+      </div>
+      <p style="font-size:22px;font-weight:800;margin:0 0 18px">Next: <span style="color:var(--amber)">Chapter 2 — Supplies</span> (coming soon)</p>
+      <div class="row" style="justify-content:center"><button class="btn ghost" id="bMenu">Main menu</button><button class="btn" id="bAgain">Play again</button></div>`;
+    show('endScr');
+    $('#bMenu').onclick = () => { SFX.click(); location.reload(); };
+    $('#bAgain').onclick = () => { SFX.click(); newGame(true); };
+  });
+}
+
+/* ---------- start ---------- */
+function resetState(name) { Object.assign(S, { name: name || S.name, hearts: 3, stars: 0, bag: [], f: {}, notes: [], words: [], follow: null }); }
+async function newGame(skipName) {
+  ac();
+  if (!skipName) { show('nameScr'); const i = $('#nameIn'); setTimeout(() => i.select(), 50); return; }
+  resetState(); save();
+  await narration([
+    'Greyhaven. A normal city. People go to work, children go to school, the buses run on time.',
+    'You are in hospital after a car accident. You are in a coma. You are sleeping... for a very long time.',
+    'While you are sleeping, the world is changing.'
+  ]);
+  await goScene('ward');
+}
+$('#title').style.backgroundImage = `url(${A.bg_title})`;
+$('#bNew').onclick = () => { SFX.click(); newGame(false); };
+$('#bName').onclick = () => {
+  const v = $('#nameIn').value.trim().replace(/[^\p{L} '-]/gu, '').slice(0, 14);
+  S.name = v ? v[0].toUpperCase() + v.slice(1) : 'Alex'; SFX.click(); newGame(true);
+};
+$('#nameIn').addEventListener('keydown', e => { if (e.key === 'Enter') $('#bName').click(); });
+const sv = loadSave();
+if (sv && sv.name) { $('#bCont').style.display = ''; $('#bCont').textContent = `Continue as ${sv.name}`; $('#bCont').onclick = () => { SFX.click(); S.name = sv.name; newGame(true); }; }
+renderHUD();
+/* debug: #scene=corridor jumps to a scene */
+const dbg = location.hash.match(/scene=(\w+)/);
+if (dbg && SCENES[dbg[1]]) { resetState('Alex'); if (dbg[1] !== 'ward') Object.assign(S.f, { woke: 1, window: 1, note: 1, cab: 1 }); if (dbg[1] === 'street') { S.f.maya = 1; S.f.card = 1; S.follow = 'maya'; } goScene(dbg[1]); }
+</script>
+</body>
+</html>
