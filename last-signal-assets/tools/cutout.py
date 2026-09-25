@@ -23,7 +23,10 @@ def matte(path):
     sizes, means = nd.sum(near, lab, idx), nd.mean(mn, lab, idx)
     # background = white touching the border + clearly white enclosed gaps (between arm and body)
     bg_ids = [i for i in idx if i in border or (sizes[i - 1] >= 60 and means[i - 1] >= 245)]
-    # small white gaps inside dark areas (between hair strands) are background too
+    # small white gaps near the outline (between hair strands, neck and hair)
+    # are background too
+    outside = np.isin(lab, [i for i in border])
+    near_edge = nd.distance_transform_edt(~outside) <= 20
     sl = nd.find_objects(lab)
     for i in idx:
         if i in bg_ids or sizes[i - 1] < 4 or means[i - 1] < 240:
@@ -33,7 +36,7 @@ def matte(path):
         xs = slice(max(0, xs.start - 3), xs.stop + 3)
         comp = lab[ys, xs] == i
         ring = nd.binary_dilation(comp, iterations=2) & ~comp
-        if mn[ys, xs][ring].mean() < 140:
+        if near_edge[ys, xs][comp].any() and mn[ys, xs][ring].mean() < 200:
             bg_ids.append(i)
     fg = nd.binary_opening(~np.isin(lab, bg_ids), iterations=1)
     l2, n2 = nd.label(fg)
