@@ -187,7 +187,7 @@ button{font-family:inherit;cursor:pointer}
 .radio .wave i{flex:1;background:var(--amber);height:10%;border-radius:3px;opacity:.5}
 .radio.play .wave i{animation:wave .5s infinite alternate}
 @keyframes wave{to{height:100%;opacity:1}}
-.transcript{font-family:'Special Elite',monospace;font-size:18px;line-height:1.5;background:#ece2c6;color:#2b2416;padding:14px 18px;border-radius:8px;margin-bottom:12px;display:none}
+.transcript{font-family:'Special Elite',monospace;font-size:19px;line-height:1.5;background:#ece2c6;color:#2b2416;padding:14px 18px;border-radius:8px;margin-bottom:12px;display:none;max-height:230px;overflow:auto}
 .transcript.on{display:block}
 /* danger */
 #danger{position:absolute;inset:0;z-index:2500;display:none}
@@ -443,46 +443,6 @@ const SFX = {
   beep() { tone(1200, .09, 'square', .05); tone(1600, .12, 'square', .05, 0, .12); }
 };
 
-/* ---------- speech: text-to-speech + recognition ---------- */
-function voice(male) {
-  const vs = (window.speechSynthesis ? speechSynthesis.getVoices() : []).filter(v => /^en/i.test(v.lang));
-  if (!vs.length) return null;
-  const pref = male ? /(daniel|david|alex|fred|guy|george|mark|male|us english)/i : /(samantha|zira|susan|karen|victoria|female|us english)/i;
-  return vs.find(v => /en-US/i.test(v.lang) && pref.test(v.name)) || vs.find(v => pref.test(v.name)) || vs.find(v => /en-US/i.test(v.lang)) || vs[0];
-}
-function speak(text, o = {}) {
-  return new Promise(res => {
-    try {
-      if (!window.speechSynthesis) return res();
-      speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'en-US'; u.rate = o.rate || .9; u.pitch = o.pitch || 1;
-      const v = voice(o.male); if (v) u.voice = v;
-      const done = () => { duck(1); res(); };
-      u.onend = done; u.onerror = done;
-      duck(.2); speechSynthesis.speak(u);
-      setTimeout(done, 400 + text.length * 110);
-    } catch (e) { res(); }
-  });
-}
-if (window.speechSynthesis) speechSynthesis.onvoiceschanged = () => {};
-const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-const CONTR = { "i'm": 'i am', "you're": 'you are', "we're": 'we are', "they're": 'they are', "it's": 'it is', "he's": 'he is', "she's": 'she is', "that's": 'that is', "what's": 'what is', "there's": 'there is', "don't": 'do not', "doesn't": 'does not', "isn't": 'is not', "aren't": 'are not', "can't": 'can not', "cannot": 'can not', "let's": 'let us', "we'll": 'we will', "i'll": 'i will' };
-function words(s) { return s.toLowerCase().replace(/[’`]/g, "'").replace(/[^a-z' ]/g, ' ').split(/\s+/).filter(Boolean).map(w => CONTR[w] || w).join(' ').split(' '); }
-function matchScore(target, heard) { const t = words(target), h = new Set(words(heard)); return t.filter(w => h.has(w)).length / t.length; }
-function listenOnce() {
-  return new Promise(res => {
-    let got = [];
-    try {
-      const r = new SR(); r.lang = 'en-US'; r.interimResults = false; r.maxAlternatives = 5;
-      r.onresult = e => { got = [...e.results[0]].map(a => a.transcript); };
-      r.onerror = e => { if (e.error === 'not-allowed' || e.error === 'service-not-allowed') got = null; };
-      r.onend = () => res(got);
-      r.start();
-    } catch (e) { res(null); }
-  });
-}
-
 /* ---------- HUD ---------- */
 function renderHUD() {
   $('#hearts').innerHTML = [0, 1, 2].map(i => `<b class="${i < S.hearts ? '' : 'off'}">♥</b>`).join('');
@@ -492,7 +452,7 @@ function addStar(n = 1) { S.stars += n; renderHUD(); const s = $('#stars'); s.cl
 function setObj(t) { $('#obj').innerHTML = t ? `<small>Objective</small>${T(t)}` : ''; }
 let toastT;
 function toast(t) { const e = $('#toast'); e.innerHTML = T(t); e.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => e.classList.remove('on'), 2600); }
-$('#bSound').onclick = () => { sound = !sound; $('#bSound').textContent = sound ? '🔊' : '🔈'; if (sound) { const n = mus.name; mus = { name: '', src: null, g: null }; music(n); } if (sound && scene && $('#game').classList.contains('on')) { ambName = ''; ambience(scene.amb); } if (!sound) { const n = mus.name; music(''); mus.name = n; Object.keys(LOOPS).forEach(k => loopOff(k, .1)); if (window.speechSynthesis) speechSynthesis.cancel(); } };
+$('#bSound').onclick = () => { sound = !sound; $('#bSound').textContent = sound ? '🔊' : '🔈'; if (sound) { const n = mus.name; mus = { name: '', src: null, g: null }; music(n); } if (sound && scene && $('#game').classList.contains('on')) { ambName = ''; ambience(scene.amb); } if (!sound) { const n = mus.name; music(''); mus.name = n; Object.keys(LOOPS).forEach(k => loopOff(k, .1)); } };
 
 /* ---------- items ---------- */
 const ITEMS = {
@@ -743,50 +703,17 @@ function orderTask({ title, icon = '🧩', intro, items }) {
   });
 }
 
-/* speaking with speech recognition (nothing is recorded or saved) */
-function speakTask({ title = 'Speaking', line, note, male = true }) {
-  return new Promise(res => {
-    const can = !!SR;
-    const p = openModal(`<div class="thead"><span>🎤 ${title}</span></div>${note ? `<p class="intro" style="text-align:center">${T(note)}</p>` : ''}<div class="say">“${T(line)}”</div>
-      <div class="saynote">${can ? 'Tap 🔊 to listen, then tap the microphone and say the sentence.' : 'Tap 🔊 to listen. Your browser cannot hear you, so say the sentence out loud and tap “I said it”.'}</div>
-      <div class="row" style="justify-content:center;gap:26px"><button class="btn ghost lis">🔊 Listen</button>${can ? '<button class="mic">🎤</button>' : ''}</div>
-      <div class="heard"></div><div class="row end"><button class="btn ghost skip" style="display:${can ? 'none' : ''}">I said it ›</button><button class="btn next" style="display:none">Continue ›</button></div>`);
-    const heard = $('.heard', p), nx = $('.next', p), sk = $('.skip', p), mic = $('.mic', p);
-    let fails = 0, busyMic = false;
-    $('.lis', p).onclick = () => speak(T(line), { male, rate: .85 });
-    if (mic) mic.onclick = async () => {
-      if (busyMic) return; busyMic = true; mic.classList.add('rec'); heard.innerHTML = '<span style="color:var(--muted)">Listening… speak now</span>';
-      if (window.speechSynthesis) speechSynthesis.cancel();
-      duck(0); const alts = await listenOnce(); duck(1); mic.classList.remove('rec'); busyMic = false;
-      if (alts === null) { heard.innerHTML = '<span class="bad">The microphone is blocked. Say it out loud and tap “I said it”.</span>'; sk.style.display = ''; return; }
-      if (!alts.length) { heard.innerHTML = '<span class="bad">I didn’t hear anything. Try again, a bit louder.</span>'; if (++fails >= 2) sk.style.display = ''; return; }
-      const best = alts.map(a => [a, matchScore(T(line), a)]).sort((a, b) => b[1] - a[1])[0];
-      if (best[1] >= .7) { SFX.ok(); addStar(); heard.innerHTML = `<span class="good">✔ Great! I heard: “${best[0]}”</span>`; mic.disabled = true; sk.style.display = 'none'; nx.style.display = ''; }
-      else { SFX.bad(); heard.innerHTML = `<span class="bad">I heard: “${best[0]}”. Try again!</span>`; if (++fails >= 2) sk.style.display = ''; }
-    };
-    sk.onclick = () => { SFX.click(); closeModal(); res(); };
-    nx.onclick = () => { SFX.click(); closeModal(); res(); };
-  });
+/* "say it" moments: build the sentence from words (no voice, no microphone) */
+function speakTask({ title = 'Build the sentence', line }) {
+  return orderTask({ title, icon: '💬', intro: 'Put the words in the correct order.', items: [{ a: T(line) }] });
 }
 
-/* radio message: listen (text-to-speech) then answer questions */
-function radioTask({ title, script, items, device = '📻', male = true, pitch = .85 }) {
-  let played = false;
-  const top = `<div class="radio"><div style="font-size:44px">${device}</div><div class="wave">${'<i></i>'.repeat(26)}</div><button class="btn play">▶ Play</button></div>
-    <div class="row" style="margin-bottom:10px"><button class="btn ghost tr" style="font-size:16px;padding:8px 16px">📄 Show the text</button><span style="color:var(--muted);font-weight:700">Listen first. You can play it again.</span></div><div class="transcript">${script}</div>`;
+/* radio message / story: read the text, then answer the questions */
+function radioTask({ title, script, items, device = '📻' }) {
+  const top = `<div class="transcript on">${script}</div>`;
   return gapTask({
-    title, icon: device, top, items, cls: 'wide',
-    mount: p => {
-      const radio = $('.radio', p);
-      $$('.wave i', p).forEach((i, n) => i.style.animationDelay = (n % 7) * .07 + 's');
-      $('.play', p).onclick = async () => {
-        const isRadio = device === '📻';
-        if (isRadio) SFX.radio(.8); radio.classList.add('play'); await sleep(isRadio ? 700 : 200); if (isRadio) loopOn('radio', { vol: .06 });
-        await speak(script, { male, rate: .88, pitch });
-        loopOff('radio', .3); radio.classList.remove('play'); if (isRadio) SFX.radio(.5); played = true;
-      };
-      $('.tr', p).onclick = () => { $('.transcript', p).classList.toggle('on'); };
-    }
+    title, icon: device, top, items, cls: 'wide', intro: 'Read the message and answer the questions.',
+    mount: () => { if (device === '📻') SFX.radio(1.2); }
   });
 }
 
@@ -1027,7 +954,7 @@ const SCENES = {
       await say('maya', 'sad', 'This is Greyhaven now. Every street looks like this.');
       await say('hero', 'sad', 'Where are all the people?');
       await say('maya', 'sad', "Some are hiding. Some are... walkers now.");
-      await say('maya', 'neutral', 'Outside we must be very quiet. Walkers hear everything. Let’s practise. Say it quietly, like me:');
+      await say('maya', 'neutral', 'Outside we must be very quiet. Walkers hear everything. Remember the most important thing:');
       vnClose();
       await speakTask({ title: 'Whisper', line: 'We need to find a safe place.', note: 'Whisper the sentence (quietly, but clearly!)', male: false });
       await say('maya', 'happy', 'Good. Very good.');
@@ -1324,7 +1251,7 @@ Object.assign(SCENES, {
           { s: 'We need ___ batteries for the flashlight.', o: ['some', 'any', 'a'], why: 'Positive sentence, plural → some.' }
         ]
       });
-      await say('maya', 'neutral', "Good. Now say the most important thing out loud, so we don't forget it.");
+      await say('maya', 'neutral', "Good. Now let's write the most important thing down, so we don't forget it.");
       vnClose();
       await speakTask({ title: 'Say the list', line: 'We need some water and some food.', male: false });
       await say('maya', 'neutral', "Let's check the shelves and that shopping cart. Quietly.");
@@ -1782,7 +1709,7 @@ Object.assign(SCENES, {
           { s: "Don't worry, Rosa. We ___ be late. I promise.", o: ["won't", "aren't", "don't"], why: 'A promise → will not = won\'t.' }
         ]
       });
-      await say('sam', 'happy', 'Say it with me — it helps!');
+      await say('sam', 'happy', 'Repeat the plan — it helps!');
       vnClose();
       await speakTask({ title: 'The plan', line: 'We are going to fix the antenna and call the army.' });
       addItem('tools');
@@ -2168,7 +2095,7 @@ function chapterMenu() {
     b.disabled = !ready;
     b.onclick = () => {
       SFX.click(); ac(); closeModal(); vnClose();
-      if (window.speechSynthesis) speechSynthesis.cancel();
+     
       $('#danger').classList.remove('on');
       const sv = loadSave();
       if (!S.name || S.name === 'Alex') S.name = (sv && sv.name) || 'Alex';
