@@ -319,7 +319,7 @@ function stagePoint(e) { const r = stage.getBoundingClientRect(); return { x: (e
 
 /* ---------- state ---------- */
 const S = { name: 'Alex', hearts: 3, stars: 0, bag: [], f: {}, notes: [], words: [], follow: null };
-function save() { try { localStorage.setItem('lastSignal1', JSON.stringify({ name: S.name })); } catch (e) {} }
+function save() { try { localStorage.setItem('lastSignal1', JSON.stringify({ name: S.name, unlocked: S.unlocked || 1 })); } catch (e) {} }
 function loadSave() { try { return JSON.parse(localStorage.getItem('lastSignal1') || 'null'); } catch (e) { return null; } }
 
 /* ---------- sound (generated, no files) ---------- */
@@ -518,6 +518,7 @@ modal.addEventListener('click', e => { const g = e.target.closest('.gl'); $$('.g
 
 function tip(title, body) {
   learnNote(title, body);
+  if (S.chNotes && !S.chNotes.includes(title)) S.chNotes.push(title);
   return new Promise(res => {
     const p = openModal(`<div class="tiphead">📓 Grammar note</div><h2>${title}</h2><div class="tipbody">${body}</div><div class="row end"><button class="btn">Got it ›</button></div>`, 'tip');
     $('.btn', p).onclick = () => { SFX.click(); closeModal(); toast('📓 Saved in your notebook'); res(); };
@@ -695,6 +696,7 @@ function dangerTask({ zombie, who = 'maya', items, time = 14 }) {
     const box = $('#danger'), dq = $('#dq'), dz = $('#dz');
     dz.src = A[zombie]; box.classList.add('on');
     let queue = items.slice(), dist = 1, need = items.length, got = 0, timer = null;
+    const missed = new Set(), starred = new Set();
     const setDist = () => { dz.style.height = [360, 470, 590, 700][Math.min(dist, 3)] + 'px'; dz.style.filter = `brightness(${.7 + dist * .08})`; };
     setDist(); SFX.growl();
     function next() {
@@ -714,11 +716,11 @@ function dangerTask({ zombie, who = 'maya', items, time = 14 }) {
       }, 50);
       async function good(b, t) {
         SFX.ok(); b.classList.add('right'); $('.gap', dq).textContent = t; $('.gap', dq).classList.add('filled');
-        got++; addStar(); dist = Math.max(0, dist - 1); setDist(); await sleep(900); next();
+        got++; if (!missed.has(it) && !starred.has(it)) { starred.add(it); addStar(); } dist = Math.max(0, dist - 1); setDist(); await sleep(900); next();
       }
       async function bad(b, it) {
         if (b) b.classList.add('wrong');
-        SFX.growl(); SFX.hurt(); dist++; setDist(); S.hearts--; renderHUD();
+        missed.add(it); SFX.growl(); SFX.hurt(); dist++; setDist(); S.hearts--; renderHUD();
         $('.opts', dq).insertAdjacentHTML('afterend', `<div class="fb bad">✘ ${b ? '' : 'Too slow! '}${it.why}</div>`);
         queue.push(it);
         await sleep(1900);
@@ -1009,7 +1011,7 @@ async function corridorMaya() {
   await narr('Behind a door, something falls on the floor. Then — footsteps. Somebody is coming.');
   vnClose();
   const m = addNPC('maya', 'maya', 'scared', 1260, 660);
-  await walk(m, 1040, 660, 220, true); m.face = -1;
+  await walk(m, 1040, 660, 220, true); m.face = 1; place(m);
   await say('maya', 'scared', "Stop! Don't move!");
   await say('maya', 'scared', 'Who are you? Can you talk?');
   await gchoice('maya', [
@@ -1143,39 +1145,341 @@ async function streetEnd() {
   await say('maya', 'neutral', 'Ready? Stay close to me. And keep your flashlight ready.');
   vnClose();
   await walk(hero, 1340, 650, 260, true);
-  await chapterEnd();
+  await chapterEnd(1);
 }
 
-async function chapterEnd() {
-  save();
+/* ============================================================
+   CHAPTER 2 — SUPPLIES
+   Grammar: countable / uncountable, some / any, a / an,
+            how much / how many, much / many / a lot of,
+            comparatives, superlatives
+   ============================================================ */
+Object.assign(G, {
+  count: ['Countable & uncountable · some / any', `<b>Countable</b> nouns — you can count them: an apple, two bottles, three cans.<br>
+    <b>Uncountable</b> nouns — you can't count them: water, rice, bread, milk, food, time.
+    <div class="ex"><span class="no">✘ two waters, a food</span> &nbsp; <span class="yes">✔ some water, some food, two bottles of water</span></div>
+    <b>some</b> — in positive sentences: We need <b>some</b> water. We have <b>some</b> cans.<br>
+    <b>any</b> — in negatives and questions: We don't have <b>any</b> bread. Are there <b>any</b> batteries?
+    <div class="ex"><b>a / an</b> + one countable thing: <b>a</b> can, <b>an</b> apple (vowel sound → an)</div>`],
+  much: ['How much / How many', `<b>How many</b> + countable (plural): How many cans do we have?<br>
+    <b>How much</b> + uncountable: How much water is there?
+    <div class="ex"><b>many</b> + countable: We don't have many cans.<br><b>much</b> + uncountable: We don't have much time.<br><b>a lot of</b> + both, mostly in positive sentences: We have a lot of biscuits. There's a lot of water.</div>
+    <b>too many / too much</b> = more than you need: Don't take too many cans!`],
+  comp: ['Comparatives', `We use comparatives to compare two things: <b>adjective + -er + than</b> or <b>more + adjective + than</b>.
+    <div class="ex">Short adjectives: big → big<b>ger</b>, light → light<b>er</b>, safe → saf<b>er</b>, easy → eas<b>ier</b><br>Long adjectives: <b>more</b> dangerous, <b>more</b> expensive</div>
+    <div class="ex">Irregular: good → <b>better</b>, bad → <b>worse</b>, far → <b>further</b></div>
+    Plastic bottles are light<b>er than</b> glass bottles. <span class="no">✘ more light</span>`],
+  sup: ['Superlatives', `We use superlatives to say that something is number one in a group: <b>the + adjective + -est</b> or <b>the most + adjective</b>.
+    <div class="ex">big → <b>the biggest</b>, quiet → <b>the quietest</b>, easy → <b>the easiest</b><br>popular → <b>the most popular</b>, dangerous → <b>the most dangerous</b></div>
+    <div class="ex">Irregular: good → <b>the best</b>, bad → <b>the worst</b>, far → <b>the furthest</b></div>
+    It was <b>the biggest</b> supermarket in the city.`]
+});
+const WORDS2 = [
+  ['supplies', 'food, water and other things you need'], ['a can of', 'a metal container: a can of beans'],
+  ['a packet of', 'a small paper or plastic box: a packet of biscuits'], ['a bar of', 'a long flat piece: a bar of chocolate'],
+  ['a bag of', 'a bag of rice, a bag of sugar'], ['painkiller', 'medicine that stops pain'],
+  ['tablet', 'a small round piece of medicine'], ['fever', 'when your body is too hot because you are ill'],
+  ['headache', 'a pain in your head'], ['infected', 'dirty and full of bacteria (a wound)'],
+  ['swollen', 'bigger than normal (a part of your body)'], ['deal', 'an agreement: I give you this, you give me that'],
+  ['heavy', 'difficult to carry; not light'], ['manager', 'the boss of a shop or a team']
+];
+Object.assign(ITEMS, {
+  water: { i: '💧', n: 'Water', d: 'Two big bottles of water.' },
+  food: { i: '🥫', n: 'Food', d: 'Three cans of beans and a bar of chocolate.' },
+  pills: { i: '💊', n: 'Painkillers', d: 'For headaches and fever. Adults: 1–2 tablets.' },
+  medkit: { i: '🧰', n: 'First aid kit', d: 'A small first aid kit for the camp.' },
+  map: { i: '🗺️', n: 'Map', d: "Marcus's map. The quickest way to Northfield is through the park." }
+});
+Object.assign(CH, {
+  marcus: { n: () => 'Marcus', c: '#e0875a', img: 'marcus' },
+  rosa: { n: () => 'Rosa', c: '#e7a4c8', img: 'rosa' },
+  sam: { n: () => 'Sam', c: '#f2d14b', img: 'sam' }
+});
+
+Object.assign(SCENES, {
+  supermarket: {
+    bg: 'bg_supermarket', floor: { x0: 90, x1: 1190, y0: 570, y1: 712, s0: .8, s1: 1 }, start: { x: 220, y: 690 },
+    spots: [
+      { id: 'shelves', x: 210, y: 300, icon: '✋', label: 'Shelves', walk: { x: 300, y: 660 }, done: () => S.f.shelves, act: shopShelves },
+      { id: 'cart', x: 875, y: 400, icon: '🛒', label: 'Shopping cart', walk: { x: 860, y: 620 }, done: () => S.f.cart, act: shopCart },
+      { id: 'pharm', x: 640, y: 330, icon: '➜', label: 'Pharmacy', exit: true, walk: { x: 640, y: 590 }, act: shopPharmacy }
+    ],
+    async enter() {
+      await narr('Two streets later. The supermarket doors are broken. Inside, it is dark and silent.');
+      await say('maya', 'sad', 'Look at this place... Most of the shelves are empty.');
+      await say('hero', 'neutral', "But maybe there's still some food. Let's look.");
+      await say('maya', 'neutral', "OK. But first, let's make a list. What do we need for the journey to Northfield?");
+      vnClose();
+      await tip(...G.count);
+      await gapTask({
+        title: 'Our shopping list', icon: '📝', intro: 'Maya is writing a shopping list. Choose the correct word.',
+        items: [
+          { s: 'We need ___ water.', o: ['some', 'a', 'many'], why: 'Water is uncountable → some water.', hint: 'Can you count water?' },
+          { s: "We don't have ___ bread.", o: ['any', 'some', 'a'], why: 'Negative sentence → any.', hint: 'Look: "don\'t have".' },
+          { s: 'Are there ___ cans of soup?', o: ['any', 'a', 'much'], why: 'Question → any.' },
+          { s: "Let's take ___ apple for the road.", o: ['an', 'a', 'some'], why: '"Apple" starts with a vowel sound → an apple.', hint: 'a or an?' },
+          { s: 'We need ___ batteries for the flashlight.', o: ['some', 'any', 'a'], why: 'Positive sentence, plural → some.' }
+        ]
+      });
+      await say('maya', 'neutral', "Good. Now say the most important thing out loud, so we don't forget it.");
+      vnClose();
+      await speakTask({ title: 'Say the list', line: 'We need some water and some food.', male: false });
+      await say('maya', 'neutral', "Let's check the shelves and that shopping cart. Quietly.");
+      vnClose();
+      setObj('Find supplies: check the shelves and the shopping cart.');
+    }
+  },
+  pharmacy: {
+    bg: 'bg_pharmacy', floor: { x0: 160, x1: 1100, y0: 575, y1: 712, s0: .85, s1: 1 }, start: { x: 1050, y: 690, face: -1 },
+    spots: [
+      { id: 'drawers', x: 470, y: 410, icon: '💊', label: 'Drawers', walk: { x: 560, y: 640 }, done: () => S.f.label, act: pharmDrawers },
+      { id: 'kits', x: 1040, y: 270, icon: '✋', label: 'Shelves', walk: { x: 960, y: 640 }, done: () => S.f.kits, act: pharmShelves },
+      { id: 'store', x: 205, y: 250, icon: '🚪', label: 'Storage room', exit: true, walk: { x: 260, y: 660 }, when: () => S.f.label && S.f.kits, act: pharmStore }
+    ],
+    async enter() {
+      await narr('The pharmacy is a mess. Broken glass, empty boxes, pills on the floor. Somebody was here before you.');
+      await say('maya', 'neutral', "Painkillers, bandages, antibiotics... Let's see what's left.");
+      vnClose(); setObj('Search the pharmacy.');
+    }
+  },
+  warehouse: {
+    bg: 'bg_warehouse', floor: { x0: 110, x1: 1180, y0: 580, y1: 712, s0: .85, s1: 1 }, start: { x: 170, y: 690 },
+    spots: [
+      { id: 'boxes', x: 430, y: 300, icon: '📦', label: 'Supplies', walk: { x: 500, y: 650 }, when: () => S.f.deal, act: storeBoxes }
+    ],
+    async enter() {
+      await narr('The storage room is cold. A single light bulb is swinging from the ceiling. You are not alone here.');
+      const m = addNPC('marcus', 'marcus', 'angry', 1320, 650, 360);
+      await walk(m, 880, 650, 240, true); m.face = 1; place(m);
+      await say('marcus', 'angry', 'Stop right there! Who are you? This is MY shop!');
+      await say('maya', 'scared', "Easy, easy! We don't want any trouble.");
+      vnClose();
+      await speakTask({ title: 'Stay calm', line: "Please, we don't want any trouble.", note: 'Say it calmly to Marcus.' });
+      await say('marcus', 'angry', 'Everybody says that. How many people are in your group? Tell me the truth!');
+      await gchoice('marcus', [
+        { t: 'There are two of us — only me and Maya.', ok: true },
+        { t: 'There is two of us — only me and Maya.', fix: "'There IS two'? Two people → there ARE. Try again — and don't lie to me!", npcEmo: 'angry' },
+        { t: 'There are two us — only me and Maya.', fix: "Two... us? You mean 'two OF us'?", npcEmo: 'angry' }
+      ]);
+      await say('marcus', 'neutral', 'Hm. And what do you want?');
+      await gchoice('marcus', [
+        { t: 'We need some food and some water.', ok: true },
+        { t: 'We need a food and a water.', fix: "'A food'? 'A water'? You can't count food and water, kid. Say 'some'." },
+        { t: 'We need many food and many water.', fix: "'Many food'? No. Food and water are uncountable. 'Some food', 'some water'." }
+      ]);
+      await say('marcus', 'angry', "Food isn't free. Not anymore. What can you give me?");
+      await say('maya', 'neutral', "Your hand. It's red and swollen. It's infected, isn't it?");
+      await say('marcus', 'sad', "...Yeah. I cut it on a nail. It really hurts. Why do you care?");
+      await say('maya', 'neutral', "I'm a doctor. I can clean it and give you medicine. And you give us food and water. Deal?");
+      await say('marcus', 'neutral', "A doctor... Hm. OK. But first — let me tell you about this place.");
+      await say('marcus', 'happy', 'I was the manager here, you know. It was a great shop!');
+      vnClose();
+      await tip(...G.sup);
+      await gapTask({
+        title: "Marcus's shop", icon: '🏪', intro: 'Marcus is talking about his supermarket. Choose the correct form.',
+        items: [
+          { s: 'This was the ___ supermarket in Greyhaven. (big)', o: ['biggest', 'bigger', 'most big'], why: 'big → the biggest (double g!).' },
+          { s: 'Chocolate was the ___ thing in the shop. (popular)', o: ['most popular', 'popularest', 'more popular'], why: 'Long adjective → the most popular.' },
+          { s: 'Tuesday was the ___ day of the week. Nobody came! (quiet)', o: ['quietest', 'most quiet', 'quieter'], why: 'quiet → the quietest.' },
+          { s: 'I was the ___ manager in the city! (good)', o: ['best', 'goodest', 'better'], why: 'Irregular: good → better → the best.' },
+          { s: 'And now... this is the ___ time of my life. (bad)', o: ['worst', 'baddest', 'most bad'], why: 'Irregular: bad → worse → the worst.' }
+        ]
+      });
+      await say('marcus', 'sad', 'My wife and my daughter went to the camp at Northfield School. I stayed here to protect the shop. Stupid, right?');
+      await say('maya', 'sad', "It isn't stupid. You were scared. We're all scared.");
+      await say('maya', 'neutral', 'Give me your hand.');
+      await narr('Maya cleans the wound and puts on a clean bandage. Marcus is quiet. For the first time, he looks less angry.');
+      await say('marcus', 'happy', 'Thanks, doc. OK — a deal is a deal. Take what you need from those boxes.');
+      vnClose();
+      S.f.deal = true; setObj('Take the supplies from the boxes.');
+    }
+  }
+});
+
+async function shopShelves() {
+  await say('hero', 'neutral', 'Most of the shelves are empty... but there are some things at the back!');
+  vnClose();
+  learnWords(WORDS2.slice(1, 5));
+  await matchTask({
+    title: 'What can we take?', icon: '🥫', intro: 'Match the containers with the food. Tap a container, then tap the food.',
+    pairs: [['a bottle of', 'water'], ['a can of', 'beans'], ['a packet of', 'biscuits'], ['a bag of', 'rice'], ['a bar of', 'chocolate'], ['a box of', 'matches']]
+  });
+  addItem('water'); await sleep(350); addItem('food');
+  await say('hero', 'happy', 'Two bottles of water, three cans of beans and a bar of chocolate. Not bad!');
+  S.f.shelves = true; await afterShop();
+}
+async function shopCart() {
+  await say('hero', 'neutral', "Somebody left a shopping cart here... and it's full!");
+  await say('maya', 'neutral', "Let's count what we have. But we can't carry everything.");
+  vnClose();
+  await tip(...G.much);
+  await gapTask({
+    title: 'Counting supplies', icon: '🛒', intro: 'You and Maya are checking the shopping cart.',
+    items: [
+      { s: 'How ___ bottles of water do we have?', o: ['many', 'much', 'lot'], why: 'Bottles are countable → How many.', hint: 'Can you count bottles?' },
+      { s: 'How ___ rice is there?', o: ['much', 'many', 'lot of'], why: 'Rice is uncountable → How much.', hint: 'Can you count rice?' },
+      { s: 'We have ___ biscuits — twelve packets!', o: ['a lot of', 'much', 'many of'], why: 'Positive sentence → a lot of.' },
+      { s: "Hurry! We don't have ___ time.", o: ['much', 'many', 'a lot'], why: 'Time is uncountable → much time.' },
+      { s: "Don't take too ___ cans. They're heavy!", o: ['many', 'much', 'lot'], why: 'Cans are countable → too many.' }
+    ]
+  });
+  await say('maya', 'happy', 'Perfect. Now we have enough for three or four days.');
+  S.f.cart = true; await afterShop();
+}
+async function afterShop() {
+  vnClose();
+  if (S.f.shelves && S.f.cart) {
+    await say('maya', 'neutral', 'Now I need medicine for the camp. There’s a pharmacy at the back of the shop. Come on.');
+    vnClose(); setObj('Go to the pharmacy at the back of the shop.');
+  } else setObj(`Find supplies (${(S.f.shelves ? 1 : 0) + (S.f.cart ? 1 : 0)}/2).`);
+}
+async function shopPharmacy() {
+  if (!(S.f.shelves && S.f.cart)) { await say('maya', 'neutral', "Wait. Let's find food and water first."); return; }
+  await goScene('pharmacy');
+}
+async function pharmDrawers() {
+  await say('maya', 'happy', 'Look — a full box of painkillers! Read the label. I want to be sure you understand it.');
+  vnClose();
+  learnWords(WORDS2.slice(5, 9));
+  await readTask({
+    title: 'Medicine label', icon: '💊',
+    doc: `<p><b>PAINAWAY 500 mg</b> — 20 [[tablets|small round pieces of medicine]]</p>
+      <p>For [[headaches|pains in your head]], toothache and [[fever|when your body is too hot because you are ill]].</p>
+      <p><b>Adults:</b> take 1–2 tablets every 4–6 hours. Don't take more than 8 tablets in 24 hours.</p>
+      <p><b>Children under 12:</b> ask a doctor first.</p>
+      <p>Take with a glass of water, after food. Don't drink alcohol with this medicine.</p>
+      <p>Keep in a cool, dry place.</p>`,
+    items: [
+      { s: 'You can take this medicine for a headache.', a: true, why: '"For headaches, toothache and fever."' },
+      { s: 'Adults can take 10 tablets a day.', a: false, why: 'Not more than 8 tablets in 24 hours.' },
+      { s: 'A child of 8 can take it without asking a doctor.', a: false, why: '"Children under 12: ask a doctor first."' },
+      { s: 'You should take it before you eat.', a: false, why: 'Take it AFTER food.' },
+      { s: 'You should keep it in a cool, dry place.', a: true, why: '"Keep in a cool, dry place."' }
+    ]
+  });
+  addItem('pills');
+  await say('maya', 'happy', "Great. People at the camp need this. Headaches, fever... it's all very common now.");
+  S.f.label = true; await afterPharm();
+}
+async function pharmShelves() {
+  await say('maya', 'neutral', "Two first aid kits. A big one and a small one. Which one do we take?");
+  vnClose();
+  await tip(...G.comp);
+  await gapTask({
+    title: 'Which one is better?', icon: '⚖️', intro: 'You and Maya are comparing things. Use the adjective in brackets.',
+    items: [
+      { s: 'This first aid kit is ___ than that one. (big)', o: ['bigger', 'more big', 'biggest'], why: 'big → bigger (double g!) + than.' },
+      { s: 'But the small one is ___ to carry. (easy)', o: ['easier', 'more easy', 'easyer'], why: 'easy → easier (y → i).' },
+      { s: 'Plastic bottles are ___ than glass bottles. (light)', o: ['lighter', 'more light', 'lightest'], why: 'Short adjective → light + er.' },
+      { s: 'Walking at night is ___ than walking in the day. (dangerous)', o: ['more dangerous', 'dangerouser', 'most dangerous'], why: 'Long adjective → more dangerous.' },
+      { s: "Your flashlight is ___ than mine. Mine is broken. (good)", o: ['better', 'gooder', 'more good'], why: 'Irregular: good → better.' }
+    ]
+  });
+  addItem('medkit');
+  await say('maya', 'neutral', "We take the small one — it's lighter. OK, I have everything.");
+  S.f.kits = true; await afterPharm();
+}
+async function afterPharm() {
+  vnClose();
+  if (S.f.label && S.f.kits) {
+    await say('maya', 'neutral', "Let's leave through the storage room. The back door is safer than the front door.");
+    await say('hero', 'scared', 'Wait... did you hear that? Something moved in there.');
+    vnClose(); setObj('Go to the storage room.');
+  } else setObj(`Search the pharmacy (${(S.f.label ? 1 : 0) + (S.f.kits ? 1 : 0)}/2).`);
+}
+async function pharmStore() { SFX.door(); await goScene('warehouse'); }
+
+async function storeBoxes() {
+  await say('marcus', 'neutral', "Water, beans, chocolate... And take this. It's a map of the city.");
+  addItem('map');
+  await say('marcus', 'neutral', 'Northfield School is on the other side of the park. The park is the quickest way.');
+  await say('hero', 'happy', 'Thank you, Marcus. Come with us! Your family is at the camp.');
+  await say('marcus', 'sad', "I... I don't know. Maybe. I need to think.");
+  SFX.door(); await sleep(200); SFX.growl();
+  await narr('BANG! BANG! Somebody is hitting the big metal door. Then — a low growl. And another one. And another one.');
+  await say('marcus', 'scared', 'Walkers! They heard us!');
+  vnClose();
+  learnWords(WORDS2);
+  await dangerTask({
+    zombie: 'zombie_suit', who: 'marcus',
+    items: [
+      { s: 'There are too ___ of them!', o: ['many', 'much', 'lot'], why: 'Walkers are countable → too many.' },
+      { s: 'Quick! Take ___ water and go!', o: ['some', 'any', 'a'], why: 'Positive sentence + uncountable → some water.' },
+      { s: 'Is there ___ other way out?', o: ['any', 'some', 'much'], why: 'Question → any.' },
+      { s: 'The side door is ___ than the big door! (safe)', o: ['safer', 'more safe', 'safest'], why: 'safe → safer than.' },
+      { s: 'Run! This is the ___ day of my life! (bad)', o: ['worst', 'baddest', 'most bad'], why: 'bad → the worst.' }
+    ]
+  });
+  await narr('You run through the side door into a narrow street. Behind you, Marcus pulls the door shut.');
+  await say('marcus', 'neutral', "Go! I'll lock the door and hold them back. I know another way out.");
+  await say('marcus', 'happy', 'See you at Northfield, doc! Tell my family I\'m coming!');
+  await say('maya', 'sad', "Marcus... Be careful.");
+  vnClose();
+  await orderTask({
+    title: 'Before you go', intro: 'Put the words in the correct order.',
+    items: [
+      { a: 'We have some water and some food.' },
+      { a: 'How many cans do we have?' },
+      { a: 'Plastic bottles are lighter than glass bottles.' },
+      { a: 'Marcus was the best manager in the city.' }
+    ]
+  });
+  await chapterEnd(2);
+}
+
+/* ============================================================
+   CHAPTERS
+   ============================================================ */
+const CHAPTERS = {
+  1: {
+    title: 'WAKE UP', scene: 'ward', words: () => WORDS1, bg: 'bg_hospital_street',
+    intro: ['Greyhaven. A normal city. People go to work, children go to school, the buses run on time.',
+      'You are in hospital after a car accident. You are in a coma. You are sleeping... for a very long time.',
+      'While you are sleeping, the world is changing.'],
+    setup() { S.follow = null; S.bag = []; }
+  },
+  2: {
+    title: 'SUPPLIES', scene: 'supermarket', words: () => WORDS2, bg: 'bg_warehouse',
+    intro: ['CHAPTER 2<br><span style="color:var(--amber)">SUPPLIES</span>',
+      'You and Maya leave the hospital. Northfield School is far away, and you have no food and no water.',
+      'But Maya knows a place. A big supermarket, two streets from the hospital.'],
+    setup() { S.follow = 'maya'; S.bag = ['note', 'flashlight', 'bandage', 'keycard', 'radio']; }
+  }
+};
+async function startChapter(n) {
+  const c = CHAPTERS[n];
+  Object.assign(S, { ch: n, hearts: 3, f: {}, chStars: S.stars, chNotes: [] });
+  c.setup(); save(); renderHUD();
+  await narration(c.intro);
+  await goScene(c.scene);
+}
+async function chapterEnd(n) {
+  const c = CHAPTERS[n], next = CHAPTERS[n + 1];
+  S.unlocked = Math.max(S.unlocked || 1, next ? n + 1 : n); save();
   await fade(async () => {
-    const e = $('#endScr'); e.style.backgroundImage = `url(${A.bg_supermarket})`;
-    $('.box', e).innerHTML = `<div class="sub">Chapter 1 complete</div><h2>WAKE UP</h2>
+    const e = $('#endScr'); e.style.backgroundImage = `url(${A[c.bg]})`;
+    $('.box', e).innerHTML = `<div class="sub">Chapter ${n} complete</div><h2>${c.title}</h2>
       <div class="sum">
-        <div><h4>Your score</h4><div class="big">⭐ ${S.stars}</div><p style="color:var(--muted);font-weight:700;margin:4px 0 0">Stars for correct answers on the first try.</p></div>
-        <div><h4>Grammar</h4><ul>${S.notes.map(n => `<li>${n.t}</li>`).join('')}</ul></div>
-        <div><h4>New words</h4><p style="font-weight:800;line-height:1.5;margin:0">${WORDS1.map(w => w[0]).join(', ')}</p></div>
+        <div><h4>Your score</h4><div class="big">⭐ ${S.stars - (S.chStars || 0)}</div><p style="color:var(--muted);font-weight:700;margin:4px 0 0">Stars for correct answers on the first try.</p></div>
+        <div><h4>Grammar</h4><ul>${(S.chNotes || []).map(t => `<li>${t}</li>`).join('')}</ul></div>
+        <div><h4>New words</h4><p style="font-weight:800;line-height:1.5;margin:0">${c.words().map(w => w[0]).join(', ')}</p></div>
       </div>
-      <p style="font-size:22px;font-weight:800;margin:0 0 18px">Next: <span style="color:var(--amber)">Chapter 2 — Supplies</span> (coming soon)</p>
-      <div class="row" style="justify-content:center"><button class="btn ghost" id="bMenu">Main menu</button><button class="btn" id="bAgain">Play again</button></div>`;
+      <p style="font-size:22px;font-weight:800;margin:0 0 18px">Next: <span style="color:var(--amber)">${next ? `Chapter ${n + 1} — ${next.title[0] + next.title.slice(1).toLowerCase()}` : `Chapter ${n + 1}`}</span>${next ? '' : ' (coming soon)'}</p>
+      <div class="row" style="justify-content:center"><button class="btn ghost" id="bMenu">Main menu</button><button class="btn ghost" id="bAgain">Play again</button>${next ? '<button class="btn" id="bNext">Next chapter ›</button>' : ''}</div>`;
     show('endScr');
     $('#bMenu').onclick = () => { SFX.click(); location.reload(); };
-    $('#bAgain').onclick = () => { SFX.click(); newGame(true); };
+    $('#bAgain').onclick = () => { SFX.click(); startChapter(n); };
+    if (next) $('#bNext').onclick = () => { SFX.click(); startChapter(n + 1); };
   });
 }
 
 /* ---------- start ---------- */
-function resetState(name) { Object.assign(S, { name: name || S.name, hearts: 3, stars: 0, bag: [], f: {}, notes: [], words: [], follow: null }); }
+function resetState(name) { Object.assign(S, { name: name || S.name, hearts: 3, stars: 0, bag: [], f: {}, notes: [], words: [], follow: null, unlocked: 1 }); }
 async function newGame(skipName) {
   ac();
   if (!skipName) { show('nameScr'); const i = $('#nameIn'); setTimeout(() => i.select(), 50); return; }
   resetState(); save();
-  await narration([
-    'Greyhaven. A normal city. People go to work, children go to school, the buses run on time.',
-    'You are in hospital after a car accident. You are in a coma. You are sleeping... for a very long time.',
-    'While you are sleeping, the world is changing.'
-  ]);
-  await goScene('ward');
+  await startChapter(1);
 }
 $('#title').style.backgroundImage = `url(${A.bg_title})`;
 $('#bNew').onclick = () => { SFX.click(); newGame(false); };
@@ -1185,11 +1489,17 @@ $('#bName').onclick = () => {
 };
 $('#nameIn').addEventListener('keydown', e => { if (e.key === 'Enter') $('#bName').click(); });
 const sv = loadSave();
-if (sv && sv.name) { $('#bCont').style.display = ''; $('#bCont').textContent = `Continue as ${sv.name}`; $('#bCont').onclick = () => { SFX.click(); S.name = sv.name; newGame(true); }; }
+if (sv && sv.name) {
+  const ch = Math.min(sv.unlocked || 1, Math.max(...Object.keys(CHAPTERS).map(Number)));
+  $('#bCont').style.display = ''; $('#bCont').textContent = `Continue: Chapter ${ch}`;
+  $('#bCont').onclick = () => { SFX.click(); ac(); resetState(sv.name); S.unlocked = sv.unlocked || 1; startChapter(ch); };
+}
 renderHUD();
-/* debug: #scene=corridor jumps to a scene */
+/* debug: #ch=2 starts a chapter, #scene=corridor jumps to a scene */
+const dbgCh = location.hash.match(/ch=(\d)/);
+if (dbgCh && CHAPTERS[dbgCh[1]]) { resetState('Alex'); startChapter(+dbgCh[1]); }
 const dbg = location.hash.match(/scene=(\w+)/);
-if (dbg && SCENES[dbg[1]]) { resetState('Alex'); if (dbg[1] !== 'ward') Object.assign(S.f, { woke: 1, window: 1, note: 1, cab: 1 }); if (dbg[1] === 'street') { S.f.maya = 1; S.f.card = 1; S.follow = 'maya'; } goScene(dbg[1]); }
+if (dbg && SCENES[dbg[1]]) { resetState('Alex'); if (dbg[1] !== 'ward') Object.assign(S.f, { woke: 1, window: 1, note: 1, cab: 1 }); if (dbg[1] !== 'ward' && dbg[1] !== 'corridor') { S.f.maya = 1; S.f.card = 1; S.follow = 'maya'; } goScene(dbg[1]); }
 </script>
 </body>
 </html>
