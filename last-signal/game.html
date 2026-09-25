@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Last Signal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@600;700;800;900&family=Special+Elite&display=swap" rel="stylesheet">
 <style>
 :root{--amber:#e0a526;--amber-d:#9c6f10;--ink:#ecebe4;--muted:#a3a89a;--panel:#1a1e1a;--line:#3a4235;--red:#d0462f;--green:#6cbf4f;--blue:#8fc7ff}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;background:#050605;overflow:hidden;font-family:Nunito,system-ui,sans-serif;color:var(--ink)}
+html,body{margin:0;height:100%;background:#050605;overflow:hidden;touch-action:manipulation;font-family:Nunito,system-ui,sans-serif;color:var(--ink)}
 button{font-family:inherit;cursor:pointer}
 #stage{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0;overflow:hidden;background:#000;user-select:none;-webkit-user-select:none}
 .screen{position:absolute;inset:0;display:none}
@@ -51,7 +51,8 @@ button{font-family:inherit;cursor:pointer}
 #bg{position:absolute;inset:0;background:#000 center/100% 100% no-repeat}
 #world{position:absolute;inset:0}
 #dark{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 60%,transparent 40%,rgba(0,0,0,.55))}
-.actor{position:absolute;transform:translate(-50%,-100%);pointer-events:none}
+.actor{position:absolute;transform:translate(-50%,-100%);pointer-events:none;transition:opacity .25s}
+.actor.talking{opacity:0}
 .actor img{display:block;filter:drop-shadow(0 6px 6px rgba(0,0,0,.35))}
 .actor:after{content:"";position:absolute;left:50%;bottom:-8px;width:80%;height:18px;transform:translateX(-50%);background:radial-gradient(closest-side,rgba(0,0,0,.55),transparent);z-index:-1}
 .actor.walk img{animation:bob .42s ease-in-out infinite}
@@ -544,11 +545,16 @@ const CH = {
 };
 const vn = $('#vn'), vnL = $('#vnL'), vnR = $('#vnR'), vnBox = $('#vnBox'), vnName = $('#vnName'), vnText = $('#vnText'), vnCh = $('#vnChoices');
 function vnOpen() { vn.classList.add('on'); }
-function vnClose() { vn.classList.remove('on'); vnL.className = 'pt'; vnR.className = 'pt'; vnL.dataset.who = vnR.dataset.who = ''; }
+function vnClose() { vn.classList.remove('on'); vnL.className = 'pt'; vnR.className = 'pt'; vnL.dataset.who = vnR.dataset.who = ''; syncHidden(); }
+/* a character shown as a big portrait is hidden in the scene, so nobody appears twice */
+function syncHidden() {
+  const shown = vn.classList.contains('on') ? [vnL.dataset.who, vnR.dataset.who].filter(Boolean) : [];
+  [hero, pal, ...Object.values(npcs)].forEach(a => { if (a && a.el) a.el.classList.toggle('talking', shown.includes(a.who)); });
+}
 function setPt(slot, who, emo) {
   const src = A[`${CH[who].img}_${emo}`] || A[`${CH[who].img}_neutral`];
   const img = $('img', slot); if (img.getAttribute('src') !== src) img.src = src;
-  slot.dataset.who = who; slot.classList.add('in');
+  slot.dataset.who = who; slot.classList.add('in'); syncHidden();
 }
 function typeText(text) {
   return new Promise(res => {
@@ -920,16 +926,16 @@ async function goScene(id) {
     $('#bg').style.backgroundImage = `url(${A[scene.bg]})`;
     $('#dark').style.opacity = scene.dark != null ? scene.dark : 1;
     const st = scene.start;
-    hero = makeActor(A.hero_m_side, 340, st.x, st.y); hero.face = st.face || 1; place(hero);
+    hero = makeActor(A.hero_m_side, 340, st.x, st.y); hero.face = st.face || 1; hero.who = 'hero'; place(hero);
     pal = S.follow ? makeActor(A[S.follow + '_side'], 330, st.x - 120 * hero.face, st.y - 14) : null;
-    if (pal) { pal.face = hero.face; place(pal); }
+    if (pal) { pal.face = hero.face; pal.who = S.follow; place(pal); }
     setObj(''); buildSpots(); show('game'); renderHUD(); ambience(scene.amb); music(scene.mus || 'tense');
   });
   setBusy(true);
   try { if (scene.enter) await scene.enter(); } finally { vnClose(); setBusy(false); buildSpots(); }
 }
 function addNPC(id, key, emo, x, y, h = 350) {
-  const a = makeActor(A[`${key}_${emo}`], h, x, y, 'npc'); npcs[id] = a; return a;
+  const a = makeActor(A[`${key}_${emo}`], h, x, y, 'npc'); a.who = key; npcs[id] = a; syncHidden(); return a;
 }
 function removeNPC(id) { if (npcs[id]) { npcs[id].el.remove(); delete npcs[id]; } }
 
@@ -1172,7 +1178,7 @@ async function corridorMaya() {
   await say('maya', 'neutral', "There's a nurse's trolley over there. Maybe there's a card in it. And from now on — we stay together.");
   vnClose();
   removeNPC('maya'); S.follow = 'maya';
-  pal = makeActor(A.maya_side, 330, 1040, 650); pal.face = -1; place(pal);
+  pal = makeActor(A.maya_side, 330, 1040, 650); pal.face = -1; pal.who = 'maya'; place(pal);
   S.f.maya = true; setObj('Find a key card.');
 }
 async function corridorTrolley() {
