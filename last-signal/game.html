@@ -485,7 +485,7 @@ async function say(who, emo, text) {
   if (who === 'hero') setPt(vnL, 'hero', emo);
   else if (CH[who] && CH[who].img) setPt(vnR, who, emo);
   vnL.classList.toggle('dim', who !== 'hero');
-  vnR.classList.toggle('dim', who === 'hero' || who === 'narr' || who === 'radio');
+  vnR.classList.toggle('dim', who === 'hero' || !CH[who] || !CH[who].img);
   const narr = who === 'narr';
   vnBox.classList.toggle('narr', narr);
   vnName.style.display = narr ? 'none' : '';
@@ -632,7 +632,7 @@ function orderTask({ title, icon = '🧩', intro, items }) {
     const dots = $('.dots', p), built = $('.built', p), pool = $('.pool', p), fb = $('.fb', p), nx = $('.next', p), hint = $('.hint', p);
     let tries = 0, solved = false;
     function render() {
-      const it = items[k]; tries = 0; solved = false;
+      const it = items[k]; tries = 0; solved = false; p.dataset.ans = it.a;
       dots.innerHTML = items.map((_, i) => `<i class="${i < k ? 'd' : i === k ? 'c' : ''}"></i>`).join('');
       hint.textContent = it.hint || ''; built.innerHTML = ''; built.className = 'built'; pool.innerHTML = ''; fb.innerHTML = ''; fb.className = 'fb';
       nx.textContent = 'Check'; nx.disabled = true;
@@ -683,18 +683,18 @@ function speakTask({ title = 'Speaking', line, note, male = true }) {
 }
 
 /* radio message: listen (text-to-speech) then answer questions */
-function radioTask({ title, script, items }) {
+function radioTask({ title, script, items, device = '📻', male = true, pitch = .85 }) {
   let played = false;
-  const top = `<div class="radio"><div style="font-size:44px">📻</div><div class="wave">${'<i></i>'.repeat(26)}</div><button class="btn play">▶ Play</button></div>
+  const top = `<div class="radio"><div style="font-size:44px">${device}</div><div class="wave">${'<i></i>'.repeat(26)}</div><button class="btn play">▶ Play</button></div>
     <div class="row" style="margin-bottom:10px"><button class="btn ghost tr" style="font-size:16px;padding:8px 16px">📄 Show the text</button><span style="color:var(--muted);font-weight:700">Listen first. You can play it again.</span></div><div class="transcript">${script}</div>`;
   return gapTask({
-    title, icon: '📻', top, items, cls: 'wide',
+    title, icon: device, top, items, cls: 'wide',
     mount: p => {
       const radio = $('.radio', p);
       $$('.wave i', p).forEach((i, n) => i.style.animationDelay = (n % 7) * .07 + 's');
       $('.play', p).onclick = async () => {
         SFX.radio(.8); radio.classList.add('play'); await sleep(700);
-        await speak(script, { male: true, rate: .88, pitch: .85 });
+        await speak(script, { male, rate: .88, pitch });
         radio.classList.remove('play'); SFX.radio(.5); played = true;
       };
       $('.tr', p).onclick = () => { $('.transcript', p).classList.toggle('on'); };
@@ -1440,6 +1440,572 @@ async function storeBoxes() {
 }
 
 /* ============================================================
+   CHAPTER 3 — THE CAMP
+   Grammar: Past Simple (regular / irregular, questions, negatives),
+            Past Continuous, when / while
+   ============================================================ */
+Object.assign(G, {
+  ps: ['Past Simple', `We use the Past Simple for finished actions in the past.
+    <div class="ex">Regular verbs: + <b>-ed</b> — walk → walk<b>ed</b>, stop → stop<b>ped</b>, carry → carr<b>ied</b><br>Irregular verbs: come → <b>came</b>, see → <b>saw</b>, hear → <b>heard</b>, find → <b>found</b>, go → <b>went</b></div>
+    <div class="ex">Negative: <b>didn't + base verb</b> — We <b>didn't stop</b>. <span class="no">✘ didn't stopped</span><br>Question: <b>Did</b> you <b>see</b> any walkers?</div>
+    <div class="ex"><b>be</b>: I / he / she / it <b>was</b> · you / we / they <b>were</b></div>`],
+  pc3: ['Past Continuous', `We use the Past Continuous for an action that was <b>in progress</b> at a moment in the past.
+    <div class="ex">Form: <b>was / were + verb-ing</b> — I <b>was cooking</b>. They <b>were screaming</b>.</div>
+    Long action (Past Continuous) + short action that interrupts it (Past Simple):
+    <div class="ex">I <b>was cooking</b> soup <b>when</b> the sick man <b>came</b> in.<br><b>While</b> we <b>were walking</b> through the park, it <b>started</b> to rain.</div>
+    <b>when</b> + short action · <b>while</b> + long action`]
+});
+const WORDS3 = [
+  ['fence', 'a wall of metal or wood around a place'], ['gate', 'a door in a fence'], ['in charge', 'the person who makes the decisions'],
+  ['missing', 'lost; nobody knows where the person is'], ['scar', 'a mark on your skin after a wound'], ['last seen', 'the last time somebody saw a person'],
+  ['tent', 'a small house made of cloth'], ['sleeping bag', 'a warm bag you sleep in'], ['soldier', 'a person in the army'],
+  ['guard', 'to protect a place or a person'], ['order', 'an instruction from a boss, e.g. in the army'], ['tradition', 'something people always do at a special time']
+];
+Object.assign(CH, { jake: { n: () => 'Jake', c: '#9fd67a', img: 'jake' }, emma: { n: () => 'Emma', c: '#c9b8ff' } });
+Object.assign(ITEMS, {
+  vaccine: { i: '🧪', n: 'Vaccine', d: 'Ten doses of the vaccine from the lab. Keep it cold!' },
+  tools: { i: '🔧', n: "Sam's tools", d: 'Cables, a screwdriver and a lot of tape.' }
+});
+
+Object.assign(SCENES, {
+  camp_gate: {
+    bg: 'bg_camp_gate', floor: { x0: 90, x1: 1190, y0: 585, y1: 712, s0: .85, s1: 1 }, start: { x: 180, y: 690 },
+    spots: [
+      { id: 'poster', x: 400, y: 440, icon: '📄', label: 'Notice board', walk: { x: 420, y: 650 }, when: () => S.f.jake, done: () => S.f.poster, act: gatePoster },
+      { id: 'gate', x: 640, y: 400, icon: '🚪', label: 'Gate', exit: true, walk: { x: 620, y: 610 }, when: () => S.f.jake, act: gateEnter }
+    ],
+    async enter() {
+      await narr('At sunset you see it: an old school behind a tall metal fence. Somebody is watching you from the top of the fence.');
+      const j = addNPC('jake', 'jake', 'angry', 640, 600, 330);
+      await say('jake', 'angry', 'Stop there! Hands up, where I can see them!');
+      await say('jake', 'angry', 'Who are you? Where did you come from?');
+      await gchoice('jake', [
+        { t: 'We came from the hospital. We heard your message on the radio.', ok: true },
+        { t: 'We comed from the hospital. We heared your message on the radio.', fix: "'Comed'? 'Heared'? Irregular verbs, kid: come → came, hear → heard.", npcEmo: 'angry' },
+        { t: 'We did came from the hospital. We did heard your message.', fix: "No 'did' in positive sentences. Just: We came... We heard...", npcEmo: 'angry' }
+      ]);
+      await say('jake', 'neutral', "I'm Jake. I'm in charge here. Before you come in, I have some questions. Everybody answers them.");
+      vnClose();
+      await tip(...G.ps);
+      await gapTask({
+        title: "Jake's questions", icon: '🪖', intro: 'Jake is asking you questions at the gate. Choose the correct form.',
+        items: [
+          { s: 'Where ___ you when it all started?', o: ['were', 'was', 'did'], why: 'you → were.', hint: 'I was, you ...?' },
+          { s: 'I ___ in hospital. I was in a coma.', o: ['was', 'were', 'am'], why: 'I → was (it is in the past).' },
+          { s: '___ you see any walkers on the way?', o: ['Did', 'Were', 'Do'], why: 'Past Simple question: Did + base verb.' },
+          { s: 'Yes, we ___ a lot of them in the park.', o: ['saw', 'seed', 'seen'], why: 'Irregular: see → saw.' },
+          { s: "We ___ stop. We walked all afternoon.", o: ["didn't", "don't", "wasn't"], why: "Negative: didn't + base verb." },
+          { s: 'Maya ___ a man’s hand at the supermarket. (clean)', o: ['cleaned', 'clean', 'cleant'], why: 'Regular verb: clean → cleaned.' }
+        ]
+      });
+      await say('jake', 'scared', 'Wait. A man at the supermarket? Big guy, beard, leather jacket?');
+      await say('hero', 'neutral', 'Yes! Marcus. He said his wife and daughter are here.');
+      await say('jake', 'happy', "They are! They'll be so happy. OK — welcome to Northfield. And a doctor! We really need you, Maya.");
+      await say('jake', 'neutral', 'Read the notice board before you come in. And then — come inside.');
+      vnClose();
+      removeNPC('jake');
+      S.f.jake = true; setObj('Read the notice board. Then go through the gate.');
+    }
+  },
+  camp_inside: {
+    bg: 'bg_camp_inside', floor: { x0: 90, x1: 1190, y0: 580, y1: 712, s0: .85, s1: 1 }, start: { x: 200, y: 690 },
+    spots: [
+      { id: 'rosa', x: 900, y: 360, icon: '💬', label: 'Rosa', walk: { x: 760, y: 660 }, done: () => S.f.rosa, act: campRosa },
+      { id: 'tent', x: 470, y: 330, icon: '⛺', label: 'Tent', walk: { x: 480, y: 640 }, done: () => S.f.emma, act: campTent },
+      { id: 'yard', x: 1200, y: 520, icon: '➜', label: 'To the fire', exit: true, walk: { x: 1150, y: 660 }, when: () => S.f.rosa && S.f.emma, act: () => goScene('camp_fire') }
+    ],
+    async enter() {
+      await narr('Inside the old gym there are tents, sleeping bags and clothes on long ropes. It smells of soup.');
+      addNPC('rosa', 'rosa', 'happy', 900, 640, 330);
+      await say('rosa', 'happy', "Oh! New faces! Welcome, welcome! I'm Rosa. I cook here. Are you hungry? Of course you are!");
+      vnClose(); setObj('Talk to Rosa. Then check the tent.');
+    }
+  },
+  camp_fire: {
+    bg: 'bg_camp_fire', floor: { x0: 90, x1: 1190, y0: 620, y1: 712, s0: .92, s1: 1 }, start: { x: 200, y: 690 }, dark: .9,
+    async enter() {
+      await narr('Night. Twenty people are sitting around the fire. Somebody is playing a guitar very quietly.');
+      addNPC('jake', 'jake', 'neutral', 900, 660, 330);
+      await say('jake', 'neutral', "It's a tradition here. Every new person tells a story. {name}, it's your turn. Tell us about the day you woke up.");
+      vnClose();
+      await speakTask({ title: 'Your story', line: "I woke up in a hospital and I didn't remember anything.", note: 'Everybody is listening. Start your story!' });
+      await tip(...G.pc3);
+      await gapTask({
+        title: 'Your story', icon: '🔥', intro: 'Tell the camp your story. Past Simple or Past Continuous?',
+        items: [
+          { s: 'When I ___ up, the hospital was empty. (wake)', o: ['woke', 'waked', 'was waking'], why: 'Irregular: wake → woke.' },
+          { s: 'I ___ out of the window when I saw the first walker. (look)', o: ['was looking', 'looked', 'were looking'], why: 'Long action + "when" + short action → was looking.' },
+          { s: 'Maya found me while she ___ the rooms. (check)', o: ['was checking', 'checked', 'were checking'], why: '"while" + long action → was checking.' },
+          { s: 'We ___ a walkie-talkie in an old ambulance. (find)', o: ['found', 'finded', 'were finding'], why: 'Irregular: find → found.' },
+          { s: 'While we ___ through the park, it started to rain. (walk)', o: ['were walking', 'was walking', 'walked'], why: 'we → were walking.' }
+        ]
+      });
+      await say('jake', 'happy', 'Good story. You were lucky, kid. Really lucky.');
+      await say('hero', 'neutral', 'What about you, Jake? What happened to you?');
+      await say('jake', 'sad', 'Me? OK. Listen.');
+      vnClose();
+      await radioTask({
+        title: "Jake's story", device: '🔥', male: true, pitch: .8,
+        script: 'Three months ago I was a soldier. On the first night, my team was guarding the North Bridge. At midnight, while we were checking the cars, the radio suddenly came to life. The order was simple: leave the city. Helicopters took my team away, but I stayed. There were too many people on the streets, and somebody had to help them. I looked for other soldiers every day, but I never found them. Then, last week, while Sam was fixing an old radio, he heard a signal from the army. Just a few words. Then nothing.',
+        items: [
+          { s: "What was Jake's job?", o: ['He was a soldier.', 'He was a doctor.', 'He was a driver.'] },
+          { s: 'Where was his team on the first night?', o: ['On the North Bridge', 'At the hospital', 'At the school'] },
+          { s: 'What were they doing when the radio came to life?', o: ['They were checking the cars.', 'They were sleeping.', 'They were eating.'] },
+          { s: 'Why did Jake stay?', o: ['People needed help.', 'He was ill.', 'He missed the helicopter.'] },
+          { s: 'What did Sam hear last week?', o: ['A signal from the army', 'A walker', 'Music'] }
+        ]
+      });
+      const s = addNPC('sam', 'sam', 'happy', 1320, 670, 320);
+      await walk(s, 1080, 670, 240, true); s.face = 1; place(s);
+      await say('sam', 'happy', "Hi! I'm Sam. I fix things. Radios, generators, anything. And yes — I heard the army!");
+      await say('sam', 'neutral', "But our antenna is too weak. We can hear them, but they can't hear us.");
+      await say('jake', 'neutral', 'There is an old radio station at the edge of the city. It has a big antenna. Tomorrow, you go there.');
+      vnClose();
+      learnWords(WORDS3);
+      await orderTask({
+        title: 'Around the fire', intro: 'Put the words in the correct order.',
+        items: [
+          { a: 'Where were you when it started?' },
+          { a: 'Rosa was cooking soup when the man came in.' },
+          { a: "We didn't stop in the park." },
+          { a: 'Jake was a soldier.' }
+        ]
+      });
+      await chapterEnd(3);
+    }
+  }
+});
+
+async function gatePoster() {
+  await say('hero', 'neutral', 'There are a lot of papers on this board. Photos, names... people who are missing.');
+  vnClose();
+  await readTask({
+    title: 'Missing', icon: '📄',
+    doc: `<p><b>MISSING — PLEASE HELP!</b></p>
+      <p><b>Tom Reyes</b>, 34. Tall, short black hair, a small [[scar|a mark on the skin after a wound]] on his chin.</p>
+      <p>Tom left the camp on Monday, 3 June, at 7 a.m. He was going to the pharmacy on King Street. He was wearing a blue jacket and a grey backpack.</p>
+      <p>He had a walkie-talkie, but he didn't answer when we called him that evening.</p>
+      <p>If you see Tom, please tell Rosa (kitchen) or Jake.</p><p>Thank you!</p>`,
+    items: [
+      { s: 'Tom left the camp in the evening.', a: false, why: 'He left at 7 a.m. — in the morning.' },
+      { s: 'He was going to a pharmacy.', a: true, why: '"He was going to the pharmacy on King Street."' },
+      { s: 'He was wearing a red jacket.', a: false, why: 'He was wearing a BLUE jacket.' },
+      { s: 'He answered the radio that evening.', a: false, why: '"He didn\'t answer when we called him."' },
+      { s: 'Rosa works in the kitchen.', a: true, why: '"Please tell Rosa (kitchen)."' }
+    ]
+  });
+  await say('hero', 'sad', 'Tom Reyes... a pharmacy. We were in a pharmacy yesterday. There was nobody there.');
+  S.f.poster = true; vnClose(); setObj('Go through the gate.');
+}
+async function gateEnter() {
+  if (!S.f.poster) { await say('maya', 'neutral', 'Jake said: read the notice board first.'); return; }
+  SFX.door(); await goScene('camp_inside');
+}
+async function campRosa() {
+  await say('rosa', 'happy', 'Sit down, sit down. Eat. And tell me — what were you doing when it all started?');
+  await say('hero', 'neutral', "I don't remember. I was in a coma. What about you, Rosa?");
+  await say('rosa', 'sad', 'Me? Oh... I remember everything. Every minute.');
+  vnClose();
+  await tip(...G.pc3);
+  await gapTask({
+    title: "Rosa's story", icon: '🍲', intro: 'Rosa is telling you about the first night. Past Simple or Past Continuous?',
+    items: [
+      { s: 'I ___ soup in my restaurant when the first sick man came in. (cook)', o: ['was cooking', 'cooked', 'were cooking'], why: 'Long action in progress → was cooking.' },
+      { s: 'Suddenly he ___ my waiter on the arm! (bite)', o: ['bit', 'was biting', 'bited'], why: 'A short action → Past Simple. Irregular: bite → bit.' },
+      { s: 'While the customers ___, I called the police. (scream)', o: ['were screaming', 'was screaming', 'screamed'], why: '"while" + long action; customers → were screaming.' },
+      { s: 'But nobody ___ the phone. (answer)', o: ['answered', 'was answering', 'answers'], why: 'One finished action → answered.' },
+      { s: 'My son Tom ___ me home that night. (drive)', o: ['drove', 'was driving', 'drived'], why: 'Irregular: drive → drove.' }
+    ]
+  });
+  await say('rosa', 'sad', 'Tom... He went out to find medicine three weeks ago. He didn’t come back.');
+  await say('hero', 'sad', "I saw the poster. I'm so sorry, Rosa.");
+  await say('rosa', 'happy', "He's a clever boy. He'll come back. I know it. Now eat your soup!");
+  S.f.rosa = true; await afterCamp();
+}
+async function campTent() {
+  await say('maya', 'neutral', "There's a girl with a fever in this tent. Her name's Emma. She's Marcus's daughter.");
+  await say('maya', 'neutral', 'I need to ask her some questions. Help me — how do we ask them in English?');
+  vnClose();
+  await orderTask({
+    title: "Maya's questions", icon: '🩺', intro: 'Help Maya make the questions for Emma.',
+    items: [
+      { a: 'When did the fever start?' },
+      { a: 'Did you eat anything today?' },
+      { a: 'Where were you yesterday?' }
+    ]
+  });
+  await say('emma', '', "It started last night... I didn't eat anything today. Yesterday I was playing outside with the other kids.");
+  await say('maya', 'happy', "It's just a fever, not the infection. Here — take one of these tablets with water. You'll feel better tomorrow.");
+  await say('emma', '', "Thank you... Is my dad OK? Did you see him?");
+  await say('hero', 'happy', 'Yes, we saw him. He helped us. He is coming here soon.');
+  S.f.emma = true; await afterCamp();
+}
+async function afterCamp() {
+  vnClose();
+  if (S.f.rosa && S.f.emma) { await say('maya', 'neutral', 'Jake wants everybody at the fire tonight. Come on.'); vnClose(); setObj('Go to the fire.'); }
+  else setObj(`Talk to Rosa and check the tent (${(S.f.rosa ? 1 : 0) + (S.f.emma ? 1 : 0)}/2).`);
+}
+
+/* ============================================================
+   CHAPTER 4 — THE SIGNAL
+   Grammar: will / going to, must / mustn't / have to /
+            don't have to / should
+   ============================================================ */
+Object.assign(G, {
+  fut: ['Future: will / going to', `<b>be going to</b> — plans we made before, and predictions from what we can see now.
+    <div class="ex">Tomorrow we <b>are going to</b> go to the radio station. (a plan)<br>Look at those clouds! It <b>is going to</b> rain. (we can see it)</div>
+    <b>will</b> — decisions at the moment of speaking, offers, promises, and predictions with <b>I think</b>.
+    <div class="ex">That bag is heavy. I<b>'ll</b> carry it! (offer)<br>I think the army <b>will</b> answer. (opinion)</div>
+    Negative: <b>won't</b> (= will not) · <b>isn't / aren't going to</b>`],
+  mod: ['must · have to · should', `<div class="ex"><b>must / have to</b> — it is necessary: We <b>must</b> be quiet. Soldiers <b>have to</b> get up at 5.<br><b>mustn't</b> — it is not allowed, don't do it! You <b>mustn't</b> touch the red cables.<br><b>don't have to</b> — it is not necessary: You <b>don't have to</b> carry the tools.</div>
+    <div class="ex"><b>should / shouldn't</b> — advice, a good idea: You <b>should</b> check the cable. You <b>shouldn't</b> go alone.</div>
+    After must / should: <b>base verb</b> — <span class="no">✘ must to go</span> <span class="yes">✔ must go</span>`]
+});
+const WORDS4 = [
+  ['antenna', 'a metal thing that sends and receives radio signals'], ['signal', 'a radio message or sound that you receive'],
+  ['frequency', 'the "number" of a radio channel'], ['cable', 'a long wire for electricity'], ['power', 'electricity'],
+  ['tower', 'a very tall, narrow building'], ['platform', 'a flat place to stand on, high up'], ['generator', 'a machine that makes electricity'],
+  ['captain', 'an officer in the army'], ['land', 'to come down to the ground (a plane, a helicopter)'],
+  ['safe zone', 'a place without walkers'], ['distract', 'to make somebody look at something else']
+];
+Object.assign(SCENES, {
+  plan: {
+    bg: 'bg_camp_inside', floor: { x0: 90, x1: 1190, y0: 580, y1: 712, s0: .85, s1: 1 }, start: { x: 220, y: 690 },
+    spots: [
+      { id: 'road', x: 1200, y: 520, icon: '➜', label: 'To the radio station', exit: true, walk: { x: 1150, y: 660 }, when: () => S.f.plan, act: () => goScene('radio_station') }
+    ],
+    async enter() {
+      await narr('Morning. Jake and Sam are looking at a big map on the floor.');
+      addNPC('jake', 'jake', 'neutral', 760, 640, 330); addNPC('sam', 'sam', 'happy', 980, 650, 320);
+      await say('jake', 'neutral', "OK, listen. Here's the plan.");
+      vnClose();
+      await tip(...G.fut);
+      await gapTask({
+        title: 'The plan', icon: '🗺️', intro: 'Jake, Sam and you are talking about the plan. Choose the correct future form.',
+        items: [
+          { s: 'Today you, Maya and Sam ___ go to the radio station.', o: ['are going to', 'will to', 'going to'], why: 'A plan we made before → are going to.' },
+          { s: 'Look at those black clouds! It ___ rain.', o: ['is going to', 'will', 'rains'], why: 'We can see it now → is going to.' },
+          { s: "That bag looks heavy, Sam. ___ carry it for you!", o: ["I'll", "I'm going", 'I going to'], why: 'An offer, decided now → will (I\'ll).' },
+          { s: 'Sam ___ fix the antenna. He knows how.', o: ['is going to', 'is going', 'will to'], why: 'be going to + base verb.' },
+          { s: 'I think the army ___ answer us.', o: ['will', 'is going', 'are going to'], why: '"I think" + opinion about the future → will.' },
+          { s: "Don't worry, Rosa. We ___ be late. I promise.", o: ["won't", "aren't", "don't"], why: 'A promise → will not = won\'t.' }
+        ]
+      });
+      await say('sam', 'happy', 'Say it with me — it helps!');
+      vnClose();
+      await speakTask({ title: 'The plan', line: 'We are going to fix the antenna and call the army.' });
+      addItem('tools');
+      await say('jake', 'neutral', "Good. Be back before dark. And {name} — bring them back alive.");
+      vnClose(); S.f.plan = true; setObj('Go to the radio station.');
+    }
+  },
+  radio_station: {
+    bg: 'bg_radio_station', floor: { x0: 90, x1: 1190, y0: 585, y1: 712, s0: .85, s1: 1 }, start: { x: 180, y: 690 },
+    spots: [
+      { id: 'van', x: 990, y: 380, icon: '📘', label: 'Van', walk: { x: 950, y: 640 }, done: () => S.f.guide, act: stationVan },
+      { id: 'tower', x: 690, y: 230, icon: '📡', label: 'Tower', walk: { x: 690, y: 620 }, when: () => S.f.guide, done: () => S.f.tower, act: stationTower },
+      { id: 'door', x: 410, y: 320, icon: '🚪', label: 'Door', exit: true, walk: { x: 420, y: 620 }, when: () => S.f.tower, act: () => goScene('radio_studio') }
+    ],
+    async enter() {
+      await narr('The old radio station stands alone at the edge of the city. The antenna tower is still there, tall and rusty.');
+      addNPC('sam', 'sam', 'neutral', 560, 640, 320);
+      await say('sam', 'neutral', 'OK. Safety rules before we start. Listen carefully — this is important.');
+      vnClose();
+      await tip(...G.mod);
+      await gapTask({
+        title: "Sam's safety rules", icon: '⚠️', intro: 'Sam is telling you the rules. Choose the correct modal verb.',
+        items: [
+          { s: "You ___ touch the red cables. They're dangerous!", o: ["mustn't", "don't have to", 'must'], why: 'It is not allowed → mustn\'t.' },
+          { s: 'We ___ be quiet. Walkers hear everything.', o: ['must', "mustn't", "don't have to"], why: 'It is necessary → must.' },
+          { s: "You ___ carry the tools. I have them.", o: ["don't have to", "mustn't", 'must'], why: 'It is not necessary → don\'t have to.' },
+          { s: "It's getting late. We ___ hurry.", o: ['should', "shouldn't", "don't have to"], why: 'Advice, a good idea → should.' },
+          { s: 'You ___ climb the tower alone. It’s too high.', o: ["shouldn't", 'should', 'have to'], why: 'Advice: it\'s a bad idea → shouldn\'t.' },
+          { s: 'In the army, Jake ___ get up at 5 a.m. every day.', o: ['had to', 'must to', 'has to got'], why: 'It was necessary in the past → had to.' }
+        ]
+      });
+      await say('sam', 'neutral', "The antenna guide is in my old van. Let's read it first.");
+      vnClose(); setObj('Read the guide in the van.');
+    }
+  },
+  radio_studio: {
+    bg: 'bg_radio_studio', floor: { x0: 90, x1: 1190, y0: 590, y1: 712, s0: .9, s1: 1 }, start: { x: 200, y: 690 },
+    spots: [
+      { id: 'tools', x: 230, y: 480, icon: '🔧', label: 'Toolbox', walk: { x: 300, y: 660 }, done: () => S.f.words4, act: studioTools },
+      { id: 'mic', x: 590, y: 330, icon: '🎙️', label: 'Microphone', walk: { x: 600, y: 630 }, when: () => S.f.words4, act: studioMic }
+    ],
+    async enter() {
+      await narr('Inside, everything is covered in dust. Old posters, old records, and a clock that stopped at ten to twelve.');
+      addNPC('sam', 'sam', 'happy', 900, 650, 320);
+      await say('sam', 'happy', "This is it! Now the radio. I'm going to try the army frequency. Can you give me the tools?");
+      vnClose(); setObj('Help Sam with the toolbox.');
+    }
+  }
+});
+async function stationVan() {
+  await say('sam', 'neutral', 'Here it is. My guide. Read it — you are going to climb, not me. I hate heights!');
+  vnClose();
+  await readTask({
+    title: 'Antenna guide', icon: '📘',
+    doc: `<p><b>ANTENNA — QUICK GUIDE</b></p>
+      <p>1. First, you <b>must</b> turn off the [[power|electricity]]. Never work on the antenna when the power is on!</p>
+      <p>2. You <b>have to</b> climb to the second [[platform|a flat place to stand on, high up]] — about 20 metres. You <b>don't have to</b> go to the top.</p>
+      <p>3. Connect the black [[cable|a long wire for electricity]] to the black box. You <b>mustn't</b> connect it to the red box!</p>
+      <p>4. You <b>should</b> check the cable for holes before you start.</p>
+      <p>5. When you finish, turn the power on again and wait two minutes. The green light <b>should</b> come on.</p>`,
+    items: [
+      { s: 'You must turn off the power first.', a: true, why: '"First, you must turn off the power."' },
+      { s: 'You have to climb to the top of the tower.', a: false, why: 'Only to the second platform. You don\'t have to go to the top.' },
+      { s: 'You connect the black cable to the red box.', a: false, why: 'To the BLACK box. You mustn\'t use the red box.' },
+      { s: 'It is a good idea to check the cable before you start.', a: true, why: '"You should check the cable."' },
+      { s: 'The green light comes on immediately.', a: false, why: 'You have to wait two minutes.' }
+    ]
+  });
+  await say('hero', 'neutral', 'OK. Power off, second platform, black cable, black box. I can do this.');
+  S.f.guide = true; vnClose(); setObj('Climb the tower and connect the antenna.');
+}
+async function stationTower() {
+  await narr('You turn off the power and start to climb. Ten metres... fifteen... twenty. The wind is cold up here.');
+  await say('hero', 'scared', 'Second platform. Black cable... black box. Done!');
+  SFX.growl();
+  await say('sam', 'scared', "{name}! Walker! It's a soldier — and it's climbing the tower!");
+  vnClose();
+  await dangerTask({
+    zombie: 'zombie_soldier', who: 'sam',
+    items: [
+      { s: '___ look down! Just climb!', o: ["Don't", "Doesn't", 'Not'], why: "Negative imperative: Don't look down!" },
+      { s: "___ distract it! Go, go!", o: ["I'll", "I'm going", 'I going to'], why: 'A decision now → I\'ll (will).' },
+      { s: 'You ___ turn the power on again, fast!', o: ['have to', 'has to', 'must to'], why: 'you → have to + base verb.' },
+      { s: "Look out! That old ladder ___ break!", o: ['is going to', 'will to', 'going'], why: 'We can see it now → is going to.' },
+      { s: "We ___ stay outside. Let's get inside!", o: ["shouldn't", 'should', "don't have to"], why: 'Advice: it\'s a bad idea → shouldn\'t.' }
+    ]
+  });
+  await narr('Sam hits an old metal sign with a hammer. BANG! BANG! The walker turns, falls from the ladder and disappears in the tall grass.');
+  await say('sam', 'happy', 'Ha! Did you see that? OK, OK — inside, now!');
+  S.f.tower = true; vnClose(); setObj('Go inside the radio station.');
+}
+async function studioTools() {
+  await say('sam', 'neutral', "Give me the... the long black thing. No, not that. Oh, you don't know the words! Let me teach you.");
+  vnClose();
+  learnWords(WORDS4);
+  await matchTask({
+    title: "Sam's words", icon: '🔧', intro: 'Tap a word, then tap its meaning.',
+    pairs: WORDS4.slice(0, 6)
+  });
+  await say('sam', 'happy', "Perfect! You're a technician now. OK... power on... frequency 7.4... Let's try!");
+  S.f.words4 = true; vnClose(); setObj('Use the microphone.');
+}
+async function studioMic() {
+  SFX.radio(1.5);
+  await say('sam', 'scared', "There! Listen! It's them!");
+  vnClose();
+  await radioTask({
+    title: 'The army message',
+    script: 'This is Captain Rivera of the National Army. This message is for all survivors in Greyhaven. On Saturday at six a.m., our helicopters will land at the North Bridge. We will take everybody to a safe zone in the mountains. You have to be at the bridge before six. We will not wait. You must not bring weapons on the helicopters, and you should bring water for one day. Good luck.',
+    items: [
+      { s: 'Who is speaking?', o: ['A captain of the army', 'Jake', 'A doctor'] },
+      { s: 'When will the helicopters land?', o: ['On Saturday at 6 a.m.', 'On Sunday at 6 p.m.', 'Tonight'] },
+      { s: 'Where will they land?', o: ['At the North Bridge', 'At the school', 'At the hospital'] },
+      { s: 'Where will they take the survivors?', o: ['To a safe zone in the mountains', 'To another city', 'To the sea'] },
+      { s: "What mustn't you bring?", o: ['Weapons', 'Water', 'Children'] }
+    ]
+  });
+  await say('sam', 'happy', "Now we answer! Take the microphone, {name}. Speak clearly!");
+  vnClose();
+  await speakTask({ title: 'Answer the army', line: 'This is Northfield camp. We will be at the bridge on Saturday.', note: 'Speak into the microphone!' });
+  SFX.radio(.8);
+  await say('radio', '', 'Northfield camp, we hear you. Saturday, six a.m. Don\'t be late. Rivera out.');
+  await say('sam', 'happy', "They heard us! They HEARD us! Saturday — that's in two days!");
+  await say('maya', 'neutral', 'The North Bridge... The old research lab is on the way. I have to go there first. I’ll explain later.');
+  vnClose();
+  await orderTask({
+    title: 'Mission complete', intro: 'Put the words in the correct order.',
+    items: [
+      { a: 'We are going to fix the antenna.' },
+      { a: "You mustn't touch the red cables." },
+      { a: 'The helicopters will land on Saturday.' },
+      { a: "You don't have to carry the tools." }
+    ]
+  });
+  await chapterEnd(4);
+}
+
+/* ============================================================
+   CHAPTER 5 — THE WAY OUT
+   Grammar: Present Perfect (ever / never / just / already / yet / for),
+            first and second conditional
+   ============================================================ */
+Object.assign(G, {
+  pp: ['Present Perfect', `<b>have / has + past participle</b> (worked, seen, made, found, been...)
+    <div class="ex">Life experience: <b>Have</b> you <b>ever seen</b> a vaccine? — No, I've <b>never</b> seen one.<br>A result now: I<b>'ve just found</b> it! (a moment ago)<br><b>already</b> = sooner than expected: We've <b>already</b> packed. · <b>yet</b> = until now (? and –): Have you finished <b>yet</b>? I haven't finished <b>yet</b>.</div>
+    <div class="ex"><b>for</b> + a period: for six weeks · <b>since</b> + a start point: since June</div>
+    With a finished time (yesterday, in 2020, last week) → Past Simple: <span class="no">✘ I have seen it yesterday.</span> <span class="yes">✔ I saw it yesterday.</span>`],
+  cond: ['Conditionals: 1st and 2nd', `<b>First conditional</b> — a real, possible situation in the future:
+    <div class="ex"><b>If + Present Simple, will + verb</b><br>If we <b>cross</b> the barricade, we<b>'ll reach</b> the helicopters.</div>
+    <b>Second conditional</b> — an imaginary or unlikely situation:
+    <div class="ex"><b>If + Past Simple, would + verb</b><br>If I <b>had</b> a helicopter, I <b>would fly</b> everybody out myself.<br>If I <b>were</b> you, I <b>would</b> run!</div>
+    <span class="no">✘ If we will cross...</span> — no <b>will</b> after <b>if</b>!`]
+});
+const WORDS5 = [
+  ['vaccine', 'medicine that stops you getting a disease'], ['dose', 'the amount of medicine you take at one time'],
+  ['volunteer', 'a person who offers to do something'], ['fridge', 'a cold box for food and medicine'],
+  ['barricade', 'a wall of things across a road to stop people'], ['fog', 'a thick grey cloud near the ground'],
+  ['cross', 'to go from one side to the other'], ['reach', 'to arrive at a place'],
+  ['rise', 'to go up (the sun rises in the morning)'], ['hope', 'a feeling that something good will happen']
+];
+Object.assign(SCENES, {
+  lab: {
+    bg: 'bg_lab', floor: { x0: 90, x1: 1150, y0: 590, y1: 712, s0: .88, s1: 1 }, start: { x: 180, y: 690 }, dark: .8,
+    spots: [
+      { id: 'notes', x: 440, y: 460, icon: '📋', label: 'Notes', walk: { x: 520, y: 660 }, done: () => S.f.notes5, act: labNotes },
+      { id: 'fridge', x: 920, y: 300, icon: '🧊', label: 'Blue fridge', walk: { x: 900, y: 630 }, when: () => S.f.notes5, done: () => S.f.vax, act: labFridge },
+      { id: 'out', x: 1200, y: 420, icon: '➜', label: 'To the bridge', exit: true, walk: { x: 1140, y: 650 }, when: () => S.f.vax, act: () => goScene('bridge') }
+    ],
+    async enter() {
+      await narr('Red emergency lights. Broken glass everywhere. Somebody left this place in a hurry.');
+      await say('maya', 'sad', 'Before all this, I worked with the scientists here. They were making a vaccine. I need to know if they finished it.');
+      vnClose(); setObj('Find out what happened in the lab.');
+    }
+  },
+  bridge: {
+    bg: 'bg_bridge', floor: { x0: 90, x1: 1190, y0: 600, y1: 712, s0: .9, s1: 1 }, start: { x: 180, y: 690 }, dark: .7,
+    spots: [
+      { id: 'barricade', x: 700, y: 470, icon: '🚧', label: 'Barricade', walk: { x: 680, y: 640 }, done: () => S.f.plan5, act: bridgeBarricade },
+      { id: 'truck', x: 300, y: 400, icon: '🚚', label: 'Army truck', walk: { x: 340, y: 650 }, when: () => S.f.plan5, act: bridgeTruck }
+    ],
+    async enter() {
+      await narr('5:30 a.m. Fog over the river. The North Bridge is full of old army trucks, barricades and wire.');
+      addNPC('jake', 'jake', 'neutral', 880, 660, 330);
+      await say('jake', 'neutral', "Thirty minutes. All twenty-two of us have to get across that barricade.");
+      await say('hero', 'scared', 'Jake... somebody is coming. Behind us!');
+      const m = addNPC('marcus', 'marcus', 'happy', -120, 680, 350);
+      await walk(m, 420, 680, 260, true); m.face = 1; place(m);
+      await say('marcus', 'happy', "Doc! Kid! Wait for me! Have you seen my family?");
+      await say('maya', 'happy', "Marcus! They're here — Emma and your wife. Emma had a fever, but she's fine now.");
+      await say('marcus', 'happy', "Thank you... Thank you. I owe you everything.");
+      vnClose(); setObj('Look at the barricade.');
+    }
+  },
+  ending: {
+    bg: 'bg_ending', floor: { x0: 90, x1: 1190, y0: 590, y1: 712, s0: .9, s1: 1 }, start: { x: 200, y: 690 }, dark: .4,
+    spots: [
+      { id: 'heli', x: 900, y: 400, icon: '🚁', label: 'Helicopter', walk: { x: 860, y: 640 }, act: endHeli }
+    ],
+    async enter() {
+      await narr('6:00 a.m. The sun is rising over Greyhaven. On the hill, a helicopter is waiting, its blades turning slowly.');
+      addNPC('rosa', 'rosa', 'happy', 520, 650, 320);
+      await say('maya', 'happy', 'We made it. We really made it.');
+      vnClose(); setObj('Go to the helicopter.');
+    }
+  }
+});
+async function labNotes() {
+  await say('maya', 'neutral', "Dr. Novak's notes! She was the head of the team. Let's read them.");
+  vnClose();
+  await tip(...G.pp);
+  await readTask({
+    title: 'Lab notes', icon: '📋',
+    doc: `<p><b>Dr. K. Novak — Lab notes, 3 June</b></p>
+      <p>We <b>have worked</b> on the [[vaccine|medicine that stops you getting a disease]] for six weeks. We <b>haven't slept</b> much.</p>
+      <p>Today we <b>have</b> finally <b>made</b> the first ten [[doses|amounts of medicine for one person]]. We <b>have tested</b> the vaccine on two [[volunteers|people who offered to help]], and they <b>haven't got</b> sick.</p>
+      <p>The army <b>has already left</b> the city. We <b>have called</b> them many times, but nobody <b>has answered</b> yet.</p>
+      <p>I <b>have put</b> the doses in the blue fridge. If somebody finds them, please take them to a doctor.</p>
+      <p>The walkers <b>have just broken</b> the window. I have to go.</p>`,
+    items: [
+      { s: 'They have worked on the vaccine for six weeks.', a: true, why: '"We have worked on the vaccine for six weeks."' },
+      { s: 'They have made twenty doses.', a: false, why: 'They have made TEN doses.' },
+      { s: 'The volunteers got sick.', a: false, why: '"They haven\'t got sick."' },
+      { s: 'The army has left the city.', a: true, why: '"The army has already left the city."' },
+      { s: 'The doses are in the red fridge.', a: false, why: 'In the BLUE fridge.' }
+    ]
+  });
+  await say('maya', 'scared', 'Ten doses... and they work. {name}, this could change everything!');
+  S.f.notes5 = true; vnClose(); setObj('Find the blue fridge.');
+}
+async function labFridge() {
+  await say('hero', 'neutral', 'The blue fridge! The door is stuck... wait...');
+  vnClose();
+  await gapTask({
+    title: 'The blue fridge', icon: '🧊', intro: 'You and Maya are talking at the fridge. Choose the correct form.',
+    items: [
+      { s: '___ you ever seen a real vaccine, {name}?', o: ['Have', 'Did', 'Has'], why: 'Life experience → Have you ever seen...?' },
+      { s: "No, I've ___ seen one.", o: ['never', 'ever', 'yet'], why: 'never = not at any time in my life.' },
+      { s: "Look! I've ___ opened it!", o: ['just', 'yet', 'ever'], why: 'just = a moment ago.' },
+      { s: 'Is it cold? Have the doses gone bad ___?', o: ['yet', 'already', 'just'], why: 'yet at the end of a question.' },
+      { s: "I've ___ packed them in the cold bag. Let's go!", o: ['already', 'yet', 'ever'], why: 'already = sooner than expected.' },
+      { s: "I ___ you for three weeks, Maya, but you're like family.", o: ['have known', 'know', 'has known'], why: 'Present Perfect + for (a period of time).' }
+    ]
+  });
+  addItem('vaccine');
+  await say('maya', 'happy', "Ten doses. Cold. Perfect. Now — the bridge. We can't be late.");
+  S.f.vax = true; vnClose(); setObj('Go to the North Bridge.');
+}
+async function bridgeBarricade() {
+  await say('jake', 'neutral', "The barricade is too high for the kids. We need a plan. Think, people!");
+  vnClose();
+  await tip(...G.cond);
+  await gapTask({
+    title: 'What if...?', icon: '🚧', intro: 'Everybody is talking about the plan. Choose the correct form.',
+    items: [
+      { s: "If we ___ the barricade, we'll reach the helicopters. (cross)", o: ['cross', 'will cross', 'crossed'], why: 'First conditional: If + Present Simple.' },
+      { s: 'If the walkers hear us, they ___ come.', o: ['will', 'would', 'are'], why: 'First conditional: will + verb.' },
+      { s: "We'll be late if we ___ now.", o: ["don't hurry", "won't hurry", "didn't hurry"], why: "No 'will' after 'if' → if we don't hurry." },
+      { s: 'If I ___ a helicopter, I would fly everybody out myself! (have)', o: ['had', 'have', 'would have'], why: 'Imaginary → second conditional: If + Past Simple.' },
+      { s: 'If you were the captain, what ___ you do?', o: ['would', 'will', 'did'], why: 'Second conditional → would.' }
+    ]
+  });
+  await say('marcus', 'neutral', "I have an idea. If we move that army truck, there'll be a hole in the barricade.");
+  S.f.plan5 = true; vnClose(); setObj('Move the army truck.');
+}
+async function bridgeTruck() {
+  await say('jake', 'neutral', 'Everybody — push! On three! Say it with me!');
+  vnClose();
+  await speakTask({ title: 'Push!', line: 'If we push together, we will move it!', note: 'Shout it with everybody!' });
+  await narr('Twenty-two people push. Slowly, very slowly, the old truck starts to move. There is a hole in the barricade now!');
+  SFX.growl();
+  await say('marcus', 'scared', "Oh no. The noise... Look at the fog! They're coming. Hundreds of them!");
+  vnClose();
+  await dangerTask({
+    zombie: 'zombie_dress', who: 'jake', time: 13,
+    items: [
+      { s: "I've ___ seen so many walkers!", o: ['never', 'ever', 'yet'], why: "never = not at any time: I've never seen..." },
+      { s: 'If we stop now, they ___ catch us!', o: ['will', 'would', 'are'], why: 'Real situation → first conditional: will.' },
+      { s: "Kids first! ___ let go of their hands!", o: ["Don't", 'Not', 'No'], why: "Negative imperative: Don't + verb." },
+      { s: 'The helicopter ___ just landed!', o: ['has', 'have', 'is'], why: 'The helicopter = it → has just landed.' },
+      { s: 'Hurry! We ___ be late!', o: ["mustn't", "don't have to", 'not must'], why: "It's not allowed → mustn't." }
+    ]
+  });
+  await narr('You run through the hole in the barricade. Behind you, Jake and Marcus push the truck back. The walkers hit the metal, again and again... but they cannot get through.');
+  learnWords(WORDS5);
+  await goScene('ending');
+}
+async function endHeli() {
+  await say('jake', 'happy', 'All twenty-two. Nobody is missing. Good job, everybody.');
+  await say('radio', '', "Northfield? Captain Rivera. Welcome. We have a passenger for you — he says his name is Tom. Tom Reyes. We found him at a pharmacy two weeks ago.");
+  await say('rosa', 'happy', 'Tom?! My Tom?! Oh... oh, thank God!');
+  await say('maya', 'happy', "And I have something for the captain. Ten doses of a vaccine. If it works, we will save millions of people.");
+  await say('maya', 'neutral', '{name}... if you could change one thing about these last days, what would you do?');
+  await gchoice('maya', [
+    { t: 'If I could go back, I would save more people.', ok: true },
+    { t: 'If I could go back, I will save more people.', fix: "Imaginary situation → 'would', not 'will'. Try again." },
+    { t: 'If I can go back, I would save more people.', fix: "Second conditional: 'If I COULD go back...'" }
+  ], 'sad');
+  await say('maya', 'happy', "You saved me. And all of them. That's enough for me.");
+  vnClose();
+  await orderTask({
+    title: 'The last words', intro: 'Put the words in the correct order.',
+    items: [
+      { a: 'Have you ever seen a vaccine?' },
+      { a: "We've already packed the doses." },
+      { a: 'If we hurry, we will be on time.' },
+      { a: 'If I had a helicopter, I would fly.' }
+    ]
+  });
+  await narr('The helicopter rises into the golden sky. Below you, Greyhaven gets smaller and smaller. Maya is holding the cold bag with both hands.');
+  await narr('For the first time in three months, you are not afraid. You are going home.');
+  await chapterEnd(5);
+}
+
+/* ============================================================
    CHAPTERS
    ============================================================ */
 const CHAPTERS = {
@@ -1458,13 +2024,33 @@ const CHAPTERS = {
       'You and Maya leave the hospital. Northfield School is far away, and you have no food and no water.',
       'But Maya knows a place. A big supermarket, two streets from the hospital.'],
     setup() { S.follow = 'maya'; S.bag = ['note', 'flashlight', 'bandage', 'keycard', 'radio']; }
+  },
+  3: {
+    title: 'THE CAMP', scene: 'camp_gate', words: () => WORDS3, bg: 'bg_camp_fire', thumb: 'bg_camp_gate',
+    topics: 'Past Simple · Past Continuous · when / while',
+    intro: ['CHAPTER 3<br><span style="color:var(--amber)">THE CAMP</span>',
+      'You walk through the park all afternoon. Nobody talks. Every sound could be a walker.',
+      "Marcus's map is good. Before the sun goes down, you reach the north side of the city."],
+    setup() { S.follow = 'maya'; S.bag = ['flashlight', 'bandage', 'radio', 'water', 'food', 'pills', 'medkit', 'map']; }
+  },
+  4: {
+    title: 'THE SIGNAL', scene: 'plan', words: () => WORDS4, bg: 'bg_radio_studio', thumb: 'bg_radio_station',
+    topics: 'will / going to · must / have to / should',
+    intro: ['CHAPTER 4<br><span style="color:var(--amber)">THE SIGNAL</span>',
+      'Somewhere out there, the army is still alive. Sam heard them.',
+      'But to answer them, Northfield needs a bigger antenna. And somebody has to climb it.'],
+    setup() { S.follow = 'maya'; S.bag = ['flashlight', 'bandage', 'radio', 'water', 'map']; }
+  },
+  5: {
+    title: 'THE WAY OUT', scene: 'lab', words: () => WORDS5, bg: 'bg_ending', thumb: 'bg_bridge', final: true,
+    topics: 'Present Perfect · 1st & 2nd conditional',
+    intro: ['CHAPTER 5<br><span style="color:var(--amber)">THE WAY OUT</span>',
+      'Saturday, 4 a.m. Twenty-two people leave Northfield School in the dark.',
+      'But first, Maya wants to make one stop: the old research lab near the river.'],
+    setup() { S.follow = 'maya'; S.bag = ['flashlight', 'bandage', 'radio', 'water', 'map', 'tools']; }
   }
 };
-const SOON = {
-  3: { title: 'THE CAMP', thumb: 'bg_camp_gate', topics: 'Past Simple · Past Continuous' },
-  4: { title: 'THE SIGNAL', thumb: 'bg_camp_fire', topics: 'will / going to · must / have to / should' },
-  5: { title: 'THE WAY OUT', thumb: 'bg_title', topics: 'Present Perfect · conditionals' }
-};
+const SOON = {};
 function chapterMenu() {
   if (modal.classList.contains('on')) return;
   SFX.click();
@@ -1508,7 +2094,7 @@ async function chapterEnd(n) {
         <div><h4>Grammar</h4><ul>${(S.chNotes || []).map(t => `<li>${t}</li>`).join('')}</ul></div>
         <div><h4>New words</h4><p style="font-weight:800;line-height:1.5;margin:0">${c.words().map(w => w[0]).join(', ')}</p></div>
       </div>
-      <p style="font-size:22px;font-weight:800;margin:0 0 18px">Next: <span style="color:var(--amber)">${next ? `Chapter ${n + 1} — ${next.title[0] + next.title.slice(1).toLowerCase()}` : `Chapter ${n + 1}`}</span>${next ? '' : ' (coming soon)'}</p>
+      <p style="font-size:22px;font-weight:800;margin:0 0 18px">${c.final ? '<span style="color:var(--amber)">THE END.</span> Thank you for playing, ' + S.name + '!' : `Next: <span style="color:var(--amber)">${next ? `Chapter ${n + 1} — ${next.title[0] + next.title.slice(1).toLowerCase()}` : `Chapter ${n + 1}`}</span>${next ? '' : ' (coming soon)'}`}</p>
       <div class="row" style="justify-content:center"><button class="btn ghost" id="bMenu">Main menu</button><button class="btn ghost" id="bAgain">Play again</button>${next ? '<button class="btn" id="bNext">Next chapter ›</button>' : ''}</div>`;
     show('endScr');
     $('#bMenu').onclick = () => { SFX.click(); location.reload(); };
