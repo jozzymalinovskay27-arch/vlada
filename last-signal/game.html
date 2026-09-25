@@ -201,9 +201,9 @@ button{font-family:inherit;cursor:pointer}
 #dbar i{display:block;height:100%;background:var(--red);width:100%}
 #dprog{position:absolute;right:28px;top:18px;font-weight:900;color:#ff8a70}
 /* bag / journal */
-.bag{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.bag{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .it{display:flex;gap:14px;align-items:center;background:#232822;border:1px solid #384035;border-radius:14px;padding:12px}
-.it .i{font-size:40px;width:56px;text-align:center}
+.it .i{font-size:40px;width:60px;flex-shrink:0;text-align:center}
 .it b{font-size:20px}
 .it p{margin:2px 0 0;color:var(--muted);font-weight:700;font-size:16px}
 .tabs{display:flex;gap:8px;margin-bottom:14px}
@@ -436,7 +436,7 @@ $('#bSound').onclick = () => { sound = !sound; $('#bSound').textContent = sound 
 /* ---------- items ---------- */
 const ITEMS = {
   note: { i: '📝', n: "Maya's note", d: 'A note from Dr. Maya Chen. She is hiding in the hospital.' },
-  bandage: { i: '🩹', n: 'Bandage', d: 'Tap to use: gives you back 1 heart.', use: 'heal' },
+  bandage: { i: '🩹', n: 'Bandage', d: 'Gives you back 1 heart.', use: 'heal' },
   flashlight: { i: '🔦', n: 'Flashlight', d: 'Walkers hate bright light.' },
   batteries: { i: '🔋', n: 'Batteries', d: 'Two batteries for the flashlight.' },
   keycard: { i: '💳', n: 'Key card', d: 'A staff card. It opens the hospital doors.' },
@@ -447,7 +447,7 @@ function icon(id) { const k = A['item_' + ITEM_IMG[id]]; return k ? `<img class=
 function addItem(id) { if (!S.bag.includes(id)) S.bag.push(id); SFX.item(); toast(`${icon(id)} ${ITEMS[id].n} — added to your backpack`); }
 $('#bBag').onclick = () => {
   if (busyModal()) return; SFX.click();
-  const p = openModal(`<div class="thead"><span>🎒 Backpack</span></div>${S.bag.length ? '<div class="bag"></div>' : '<p class="empty">Your backpack is empty.</p>'}<div class="row end"><button class="btn">Close</button></div>`);
+  const p = openModal(`<div class="thead"><span>🎒 Backpack</span></div>${S.bag.length ? '<div class="bag"></div>' : '<p class="empty">Your backpack is empty.</p>'}<div class="row end"><button class="btn">Close</button></div>`, 'wide');
   const bag = $('.bag', p);
   S.bag.forEach(id => {
     const it = ITEMS[id], d = el('div', 'it', `<div class="i">${icon(id)}</div><div><b>${it.n}</b><p>${it.d}${id === 'map' ? ' <u>Tap to open.</u>' : ''}</p></div>`);
