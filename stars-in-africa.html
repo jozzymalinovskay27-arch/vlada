@@ -914,9 +914,9 @@ $("#mx").onclick=closeModal;
 
 /* ================= NEWS ================= */
 function openNews(){const N=NEWS[S.day-1];
- modal(`📺 Morning news · Day ${S.day}`,`${hostsHTML(`“Good morning, ${esc(S.name)}!”`)}<div class="news">${N.t.map(p=>`<p>${fill(p)}</p>`).join("")}</div><div class="lab">Did you understand?</div><div id="nq"></div>`);
- let i=0,got=0;const next=()=>{if(i>=N.q.length){$("#nq").innerHTML=`<div class="row" style="justify-content:space-between"><b>${got}/${N.q.length} correct</b><button class="btn green" id="nok">🎯 Go to the trial!</button></div>`;$("#nok").onclick=()=>{closeModal();if(got)addPop(got*2,"news");afterTask("news","👉 Next: the trial! Click the TRIALS sign.")};return}
-  askQ($("#nq"),mkChoice(N.q[i].map(x=>Array.isArray(x)?x.map(y=>fill(y)):fill(x))),{star:false,tag:`Question ${i+1} of ${N.q.length}`},ok=>{if(ok)got++;i++;next()})};next()}
+ modal(`📺 Morning news · Day ${S.day}`,`${hostsHTML(`“Good morning, ${esc(S.name)}!”`)}<div class="news">${N.t.map(p=>`<p>${fill(p)}</p>`).join("")}</div><div class="lab">Did you understand?</div><div id="newsq"></div>`);
+ let i=0,got=0;const next=()=>{if(i>=N.q.length){$("#newsq").innerHTML=`<div class="row" style="justify-content:space-between"><b>${got}/${N.q.length} correct</b><button class="btn green" id="nok">🎯 Go to the trial!</button></div>`;$("#nok").onclick=()=>{closeModal();if(got)addPop(got*2,"news");afterTask("news","👉 Next: the trial! Click the TRIALS sign.")};return}
+  askQ($("#newsq"),mkChoice(N.q[i].map(x=>Array.isArray(x)?x.map(y=>fill(y)):fill(x))),{star:false,tag:`Question ${i+1} of ${N.q.length}`},ok=>{if(ok)got++;i++;next()})};next()}
 
 /* ================= TRIALS ================= */
 let T=null;
