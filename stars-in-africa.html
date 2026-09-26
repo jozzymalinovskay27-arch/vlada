@@ -761,8 +761,8 @@ const DIARY=[
 ];
 
 /* chores */
-const WORDS={A2:[["🔥","fire"],["🌳","tree"],["🪨","rock"],["⛺","tent"],["🌙","moon"],["🐒","monkey"],["🐘","elephant"],["🦒","giraffe"],["🦓","zebra"],["🦁","lion"],["🐍","snake"],["🕷️","spider"],["💧","water"],["🍌","banana"],["🎒","backpack"],["🥾","boots"],["🧢","cap"],["🐊","crocodile"],["☀️","sun"],["🌧️","rain"],["🦅","eagle"],["🐜","ant"],["🪵","wood"],["🐟","fish"]],
- B1:[["🦂","scorpion"],["🧭","compass"],["🔦","torch"],["🪢","rope"],["🦟","mosquito"],["🦏","rhino"],["🐆","leopard"],["🦛","hippo"],["🐃","buffalo"],["🌅","sunrise"],["⛈️","thunderstorm"],["🌈","rainbow"],["👣","footprints"],["🪣","bucket"],["🧴","sun cream"],["🩹","plaster"],["🦎","lizard"],["🦉","owl"],["🥥","coconut"],["🌵","cactus"],["🪓","axe"],["🗺️","map"],["⚡","lightning"],["🪰","fly"]]};
+const WORDS={A2:[["🔥","fire"],["🌳","tree"],["🪨","rock"],["⛺","tent"],["🌙","moon"],["🐒","monkey"],["🐘","elephant"],["🦒","giraffe"],["🦓","zebra"],["🦁","lion"],["🐍","snake"],["🕷️","spider"],["💧","water"],["🍌","banana"],["🎒","backpack"],["🥾","boots"],["🧢","cap"],["🐊","crocodile"],["☀️","sun"],["🌧️","rain"],["🦅","eagle"],["🐜","ant"],["🪵","wood"],["🐟","fish"],["🦜","parrot"],["🐢","tortoise"],["🦋","butterfly"],["🐸","frog"],["🌴","palm tree"],["🌺","flower"],["🍉","watermelon"],["🥚","egg"],["🍞","bread"],["🪑","chair"],["🛏️","bed"],["🥄","spoon"],["⭐","star"],["☁️","cloud"],["🐄","cow"],["🐑","sheep"],["🦆","duck"],["🐝","bee"],["🍎","apple"],["🥕","carrot"]],
+ B1:[["🦂","scorpion"],["🧭","compass"],["🔦","torch"],["🪢","rope"],["🦟","mosquito"],["🦏","rhino"],["🐆","leopard"],["🦛","hippo"],["🐃","buffalo"],["🌅","sunrise"],["⛈️","thunderstorm"],["🌈","rainbow"],["👣","footprints"],["🪣","bucket"],["🧴","sun cream"],["🩹","plaster"],["🦎","lizard"],["🦉","owl"],["🥥","coconut"],["🌵","cactus"],["🪓","axe"],["🗺️","map"],["⚡","lightning"],["🪰","fly"],["🦩","flamingo"],["🦚","peacock"],["🐌","snail"],["🪲","beetle"],["🐛","caterpillar"],["🦇","bat"],["🦔","hedgehog"],["🌋","volcano"],["🏝️","island"],["🌪️","tornado"],["🌫️","fog"],["🪜","ladder"],["🧤","gloves"],["🕯️","candle"],["🛶","canoe"],["🔭","telescope"],["🌻","sunflower"],["🦦","otter"],["🐺","wolf"],["🏹","bow and arrow"]]};
 const RECIPES={A2:[
  ["Camp Rice and Beans",["First, wash the rice in cold water.","Then, put the rice in a pot with some water.","Next, cook the rice on the fire for twenty minutes.","After that, add the beans and some salt.","Finally, share it with your campmates!"]],
  ["Jungle Fruit Salad",["First, wash your hands.","Then, peel the bananas and the mangoes.","Next, cut all the fruit into small pieces.","After that, put the fruit in a big bowl.","Finally, add some honey and mix it well."]],
@@ -1017,6 +1017,12 @@ function dinner(st,n){const r=st/n,p=present();
   <div class="row center"><button class="btn green" onclick="closeModal();afterTask('trial')">😋 Let's eat!</button></div>`,true)}
 
 /* ================= CHORES ================= */
+/* pick n items that the student hasn't seen yet; only when everything has been seen does the list start again */
+function freshPick(key,pool,n){let seen=[];try{seen=JSON.parse(localStorage.getItem("sia-seen-"+key)||"[]")}catch(e){seen=(S.seen&&S.seen[key])||[]}
+ const all=pool.map((_,i)=>i);let fresh=shuffle(all.filter(i=>!seen.includes(i))),got=fresh.slice(0,n);
+ if(got.length<n){const more=shuffle(all.filter(i=>!got.includes(i))).slice(0,n-got.length);got=got.concat(more);seen=more.slice()}else seen=seen.concat(got);
+ try{localStorage.setItem("sia-seen-"+key,JSON.stringify(seen))}catch(e){S.seen=S.seen||{};S.seen[key]=seen}
+ return shuffle(got).map(i=>pool[i])}
 function openChore(){modal("🪵 Camp jobs",`<p class="instr">Everybody helps in the camp! Choose one job for today.</p><div class="cards3">
  <button class="ccard" data-c="wood"><div class="e">🪵</div><b>Collect firewood</b>Match the words and the pictures.</button>
  <button class="ccard" data-c="cook"><div class="e">🍳</div><b>Cook dinner</b>Put the recipe steps in order.</button>
@@ -1025,7 +1031,7 @@ function openChore(){modal("🪵 Camp jobs",`<p class="instr">Everybody helps in
 function choreDone(right,total,label){S.right+=right;S.total+=total;const pts=Math.round(right/total*6);
  $("#mb").insertAdjacentHTML("beforeend",`<div class="row" style="justify-content:space-between;margin-top:14px"><b style="font-size:18px">${label}: ${right}/${total} ✔</b><button class="btn green" id="cdone">🏕️ Back to the camp</button></div>`);
  sfx(right>=total*.6?"ok":"bad");$("#cdone").onclick=()=>{closeModal();addPop(pts,"camp job");afterTask("chore")}}
-function choreWood(){const set=shuffle(WORDS[S.level]).slice(0,6);let sel=null,miss=0,got=0;
+function choreWood(){const set=freshPick("words-"+S.level,WORDS[S.level],6);let sel=null,miss=0,got=0;
  modal("🪵 Collect firewood",`<p class="instr">Click a picture, then click the matching word. Every pair = one log for the fire! 🔥</p><div class="match"><div class="col">${shuffle(set).map(w=>`<button class="mc em" data-w="${esc(w[1])}">${w[0]}</button>`).join("")}</div><div class="col">${shuffle(set).map(w=>`<button class="mc" data-t="${esc(w[1])}">${esc(w[1])}</button>`).join("")}</div></div>`,true);
  $$("#mb [data-w]").forEach(b=>b.onclick=()=>{$$("#mb [data-w]").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");sel=b;sfx("click")});
  $$("#mb [data-t]").forEach(b=>b.onclick=()=>{if(!sel){toast("👈 Click a picture first!");return}if(sel.dataset.w===b.dataset.t){sel.classList.remove("sel");sel.classList.add("ok");b.classList.add("ok");sel=null;got++;sfx("ok");if(got===6)choreDone(Math.max(0,6-miss),6,"Firewood")}else{miss++;sfx("bad");b.classList.remove("no");void b.offsetWidth;b.classList.add("no")}})}
@@ -1035,7 +1041,7 @@ function choreCook(){const R=RECIPES[S.level][(S.day-1)%3],steps=R[1];let pool;d
  $("#rr").onclick=()=>{pool=pool.concat(built);built=[];draw()};
  $("#rc").onclick=()=>{let c=0;$$("#built .step").forEach((e,k)=>{const ok=built[k]===steps[k];e.classList.add(ok?"right":"wrong");if(ok)c++});$("#rc").remove();$("#rr").remove();$("#plab").remove();
   if(c<5)$("#built").insertAdjacentHTML("afterend",`<div class="clue" style="margin-top:10px">✅ Correct order:<br>${steps.map((s,k)=>`${k+1}. ${esc(s)}`).join("<br>")}</div>`);choreDone(c,5,"Recipe")};draw()}
-function choreWater(){const rows=shuffle(ODD[S.level]).slice(0,5);let got=0,i=0;
+function choreWater(){const rows=freshPick("odd-"+S.level,ODD[S.level],5);let got=0,i=0;
  modal("💧 Fetch water",`<p class="instr">Which word is the odd one out? Every correct answer fills the bucket!</p><div class="bucket"><i id="bk"></i></div><div id="odd"></div>`,true);
  const draw=()=>{const r=rows[i],w=shuffle(r[0]);$("#odd").innerHTML=`<div class="oddrow"><span class="n">${i+1}.</span>${w.map(x=>`<button class="opt" data-w="${esc(x)}">${esc(x)}</button>`).join("")}</div><div id="ow"></div>`;
   $$("#odd [data-w]").forEach(b=>b.onclick=()=>{const ok=b.dataset.w===r[0][0];$$("#odd [data-w]").forEach(x=>{x.disabled=true;if(x.dataset.w===r[0][0])x.classList.add("right")});if(!ok)b.classList.add("wrong");else got++;sfx(ok?"ok":"bad");$("#bk").style.width=(got/5*100)+"%";
