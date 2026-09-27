@@ -375,7 +375,7 @@ details.ru summary{font-weight:900;cursor:pointer}
   <div class="tbox"><div class="bigstar">⭐</div><h1><small>STARS IN</small><b>AFRICA</b></h1><p>The English survival show · A2–B1</p>
    <div class="row center"><button class="btn big green" id="b-new">🎬 New show</button><button class="btn big" id="b-cont" style="display:none">▶ Continue</button><button class="btn big ghost" id="b-how">❓ How to play</button></div></div>
   <div class="credit">7 days · 8 people · 1 camp · lots of English</div>
-  <div style="position:absolute;right:14px;bottom:10px;color:rgba(255,255,255,.55);font-weight:800;font-size:12px">version 15</div>
+  <div style="position:absolute;right:14px;bottom:10px;color:rgba(255,255,255,.55);font-weight:800;font-size:12px">version 16</div>
   <button class="ib" id="t-mus" title="Music" style="position:absolute;right:18px;top:16px;width:46px;height:46px;font-size:22px">🎵</button>
  </div>
  <div class="screen" id="cast"></div>
@@ -820,7 +820,16 @@ function others(){return CHARS.map(c=>c.id).filter(id=>id!==S.me)}
 function present(){return others().filter(id=>!S.out.includes(id))}
 function fill(t,extra){const c=CH(S.me);let s=String(t).replace(/\{me\}/g,esc(S.name)).replace(/\{aJob\}/g,aan(c.job)).replace(/\{job\}/g,c.job);
  const x=Object.assign({},S.news?{a:pname(S.news[0]),b:pname(S.news[1])}:{},extra||{});Object.keys(x).forEach(k=>{s=s.replace(new RegExp("\\{"+k+"\\}","g"),x[k])});return s}
-function takeQ(bank,lvl,n){const key=bank+lvl;S.used[key]=S.used[key]||[];const all={GRAM,VOC,ORDER,SCR,SNK}[bank][lvl];let pool=all.map((_,i)=>i).filter(i=>!S.used[key].includes(i));if(pool.length<n){S.used[key]=[];pool=all.map((_,i)=>i)}const got=shuffle(pool).slice(0,n);S.used[key].push(...got);return got.map(i=>all[i])}
+/* A2+ = the A2 questions plus the easier half of B1 (no passive, reported speech, past perfect, wish…) */
+const EASY_B1={"GRAM":[0,1,2,3,4,5,7,10,11,13,14,15,16,19,20,28,29,36],"VOC":[0,1,2,3,4,5,7,8,10,12,13,14,15,16,17,19,20,21,22,23,24,25,26,28],"ORDER":[0,1,2,5,6,7,9,12,13],"SCR":[0,3,4,5,6,7,8,11],"SNK":[0,1,2,9,10,11,12],"BUGS":[0,1,2,4,5]};
+const easyB1=(bank,src)=>EASY_B1[bank].map(i=>src[i]);
+function takeFrom(key,all,n){S.used[key]=S.used[key]||[];let pool=all.map((_,i)=>i).filter(i=>!S.used[key].includes(i));if(pool.length<n){S.used[key]=[];pool=all.map((_,i)=>i)}const got=shuffle(pool).slice(0,n);S.used[key].push(...got);return got.map(i=>all[i])}
+function takeQ(bank,lvl,n){const B={GRAM,VOC,ORDER,SCR,SNK}[bank];
+ if(lvl!=="A2+")return takeFrom(bank+lvl,B[lvl],n);
+ const hard=n%2?(Math.random()<.5?Math.ceil(n/2):Math.floor(n/2)):n/2;   /* about half the questions from the easy B1 part */
+ return shuffle(takeFrom(bank+"A2",B.A2,n-hard).concat(takeFrom(bank+"A2+",easyB1(bank,B.B1),hard)))}
+/* word games at A2+ use both word lists */
+const lvPool=o=>S.level==="A2+"?o.A2.concat(o.B1):o[S.level];
 function mkChoice(r){const o=shuffle(r[1]);return{type:"choice",q:r[0],o,a:o.indexOf(r[1][0]),why:r[2]}}
 function mkQs(bank,n){const L=S.level,rows=takeQ(bank,L,n);return rows.map(r=>bank==="ORDER"?{type:"order",s:r}:bank==="SCR"?{type:"scramble",w:r[0],clue:r[1]}:bank==="SNK"?{type:"snake",s:r[0],ok:r[1],fix:r[2],why:r[3]}:mkChoice(r))}
 function addPop(n,why){S.pop+=n;S.today+=n;if(why)toast(`❤️ ${n>=0?"+":""}${n} popularity · ${why}`,n>=0?"good":"bad");renderHUD();save()}
@@ -873,7 +882,7 @@ function howTo(){modal("❓ How to play",`<div class="rules">
  <h4>🎬 The show</h4><ul><li>You are one of 8 ordinary people in a camp in Africa for <b>7 days</b>.</li><li>Every night the public votes. From Day 3, one person leaves the camp every night.</li><li>On Day 7 the public chooses the winner — the <b>Star of Africa</b>! ⭐</li></ul>
  <h4>📋 Every day</h4><ul><li>📺 Read the <b>morning news</b> and answer the questions.</li><li>🎯 Do the <b>trial</b>. Every correct answer = ⭐ = food for the camp. Too scary? Press <i>“Get me out of here!”</i></li><li>🪵 Do a <b>camp job</b>: firewood, cooking or water.</li><li>🔥 <b>Chat</b> with someone at the campfire — choose the best answers.</li><li>🎥 Go to the <b>Diary Room</b> and speak to the camera. You can record yourself.</li></ul>
  <h4>❤️ Popularity</h4><ul><li>Good English and kind answers make the public love you. Rude answers don't!</li><li>If you are in the <b>danger zone</b>, answer 3 of 5 questions correctly to stay in the camp.</li></ul>
- <details class="ru"><summary>🇷🇺 Коротко по-русски (для учителя)</summary><p>Игра по мотивам шоу «Звёзды в Африке», уровень A2 или B1 выбирается в начале. Ученик — один из 8 обычных участников. 7 игровых дней, в каждом: чтение (новости), испытание (грамматика/лексика/порядок слов/орфография/поиск ошибок — каждый верный ответ = звезда = еда для лагеря), лексическая мини-игра (дрова/готовка/вода), диалог у костра (выбор уместной и грамматически верной реплики), говорение в «комнате признаний» (таймер, запись голоса, чек-лист). Со 3-го дня каждый вечер кто-то уходит по голосованию зрителей; если ученик в зоне риска — нужно ответить на 3 из 5 вопросов. Прогресс сохраняется в браузере.</p></details></div>
+ <details class="ru"><summary>🇷🇺 Коротко по-русски (для учителя)</summary><p>Игра по мотивам шоу «Звёзды в Африке», уровень A2, A2+ или B1 выбирается в начале (A2+ — вопросы A2 и лёгкая половина B1: present perfect, first conditional, used to, should, без пассива, косвенной речи и past perfect). Ученик — один из 8 обычных участников. 7 игровых дней, в каждом: чтение (новости), испытание (грамматика/лексика/порядок слов/орфография/поиск ошибок — каждый верный ответ = звезда = еда для лагеря), лексическая мини-игра (дрова/готовка/вода), диалог у костра (выбор уместной и грамматически верной реплики), говорение в «комнате признаний» (таймер, запись голоса, чек-лист). Со 3-го дня каждый вечер кто-то уходит по голосованию зрителей; если ученик в зоне риска — нужно ответить на 3 из 5 вопросов. Прогресс сохраняется в браузере.</p></details></div>
  <div class="row center" style="margin-top:14px"><button class="btn green" onclick="closeModal()">OK, let's go!</button></div>`)}
 
 /* ================= CAST ================= */
@@ -883,7 +892,7 @@ function buildCast(){castSel=castSel||"marcus";const el=$("#cast");
  <div class="grid">${CHARS.map(c=>`<button class="pick ${c.id===castSel?"sel":""}" data-c="${c.id}"><div class="fig">${bodyHTML(c.id)}</div><div class="nm">${c.name}<small>${c.age} · ${c.job}</small></div></button>`).join("")}</div>
  <div class="info"><div class="who"><div class="big" id="cbig"></div><div><h3 id="cname"></h3><p id="cdesc"></p></div></div>
   <div class="lab">Your name in the show</div><input class="inp" id="cin" maxlength="14" autocomplete="off" spellcheck="false">
-  <div class="lab">Your English level</div><div class="lvl"><button data-l="A2" class="${castLvl==="A2"?"sel":""}"><b>A2</b>Elementary / Pre-intermediate</button><button data-l="B1" class="${castLvl==="B1"?"sel":""}"><b>B1</b>Intermediate</button></div>
+  <div class="lab">Your English level</div><div class="lvl">${[["A2","Elementary"],["A2+","Pre-intermediate"],["B1","Intermediate"]].map(([l,t])=>`<button data-l="${l}" class="${castLvl===l?"sel":""}"><b>${l}</b>${t}</button>`).join("")}</div>
   <div style="flex:1"></div><div class="row" style="justify-content:space-between"><button class="btn ghost" id="cback">← Back</button><button class="btn big green" id="cgo">✈️ Fly to Africa!</button></div></div>`;
  const upd=()=>{const c=CH(castSel);$("#cbig").innerHTML=bodyHTML(c.id);$("#cname").textContent=c.name;$("#cdesc").innerHTML=`${c.age} years old<br>${aan(c.job)[0].toUpperCase()+aan(c.job).slice(1)}<br>from ${c.from}`;$("#cin").value=c.name};
  el.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{sfx("click");castSel=b.dataset.c;el.querySelectorAll("[data-c]").forEach(x=>x.classList.toggle("sel",x===b));upd()});
@@ -969,7 +978,7 @@ const TRIALS=[
   onResult(i,ok){const b=$(`#tscene .box[data-i="${i}"]`);b.classList.add("used");b.insertAdjacentHTML("beforeend",`<div class="res">${ok?starIMG(80):"🕷️"}</div>`);const h=b.querySelector(".hole");if(h)h.style.opacity=.3}},
  {id:"bugs",name:"Bug Banquet",icon:"🪲",intro:"Six strange dishes are waiting for you. Read about each dish and answer the question to eat it. Every dish you eat is a star!",
   bg:()=>IMG.bg.banquet?`#1a140c url(${IMG.bg.banquet}) -192px -74px/1638px auto no-repeat`:"linear-gradient(180deg,#1f5a3a 0%,#2f7a4a 45%,#7a4a20 45.2%,#5e3a17 100%)",
-  qs:()=>shuffle(BUGS[S.level]).map(r=>{const q=mkChoice([r[3],r[4],r[5]]);q.dish={e:r[0],name:r[1],desc:r[2],img:r[6]&&IMG.dish&&IMG.dish[r[6]]};return q}),hint:"Lift a cover to see the dish… 🍽️",
+  qs:()=>(S.level==="A2+"?shuffle(shuffle(BUGS.A2).slice(0,3).concat(shuffle(easyB1("BUGS",BUGS.B1)).slice(0,3))):shuffle(BUGS[S.level])).map(r=>{const q=mkChoice([r[3],r[4],r[5]]);q.dish={e:r[0],name:r[1],desc:r[2],img:r[6]&&IMG.dish&&IMG.dish[r[6]]};return q}),hint:"Lift a cover to see the dish… 🍽️",
   build(el){if(IMG.bg.banquet&&IMG.obj&&IMG.obj.cloche){el.innerHTML=T.qs.map((q,i)=>{const [x,y,w]=TABLE_POS[i];return `<div class="obj plate tdish" data-i="${i}" style="left:${x}px;top:${y}px;width:${w}px;z-index:${y}"><div class="food">${q.dish.img?`<img src="${q.dish.img}" alt="">`:q.dish.e}</div><img class="cl" src="${IMG.obj.cloche}" alt=""><div class="num">${i+1}</div></div>`}).join("");
     el.querySelectorAll(".plate").forEach(b=>b.onclick=()=>{sfx("open");b.classList.add("open");setTimeout(()=>trialAsk(+b.dataset.i),450)});return}
    el.innerHTML=T.qs.map((q,i)=>`<div class="obj plate" data-i="${i}" style="left:${150+i*196}px;top:${i%2?575:545}px"><div class="pl"></div><div class="food">${q.dish.img?`<img src="${q.dish.img}" alt="">`:q.dish.e}</div>${IMG.obj&&IMG.obj.cloche?`<img class="cl img" src="${IMG.obj.cloche}" alt="">`:`<div class="cl"></div>`}<div class="dn">Dish ${i+1}</div></div>`).join("");
@@ -1060,17 +1069,17 @@ function openChore(){modal("🪵 Camp jobs",`<p class="instr">Everybody helps in
 function choreDone(right,total,label){S.right+=right;S.total+=total;const pts=Math.round(right/total*6);
  $("#mb").insertAdjacentHTML("beforeend",`<div class="row" style="justify-content:space-between;margin-top:14px"><b style="font-size:18px">${label}: ${right}/${total} ✔</b><button class="btn green" id="cdone">🏕️ Back to the camp</button></div>`);
  sfx(right>=total*.6?"ok":"bad");$("#cdone").onclick=()=>{closeModal();addPop(pts,"camp job");afterTask("chore")}}
-function choreWood(){const set=freshPick("words-"+S.level,WORDS[S.level],6);let sel=null,miss=0,got=0;
+function choreWood(){const set=freshPick("words-"+S.level,lvPool(WORDS),6);let sel=null,miss=0,got=0;
  modal("🪵 Collect firewood",`<p class="instr">Click a picture, then click the matching word. Every pair = one log for the fire! 🔥</p><div class="match"><div class="col">${shuffle(set).map(w=>`<button class="mc em" data-w="${esc(w[1])}">${w[0]}</button>`).join("")}</div><div class="col">${shuffle(set).map(w=>`<button class="mc" data-t="${esc(w[1])}">${esc(w[1])}</button>`).join("")}</div></div>`,true);
  $$("#mb [data-w]").forEach(b=>b.onclick=()=>{$$("#mb [data-w]").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");sel=b;sfx("click")});
  $$("#mb [data-t]").forEach(b=>b.onclick=()=>{if(!sel){toast("👈 Click a picture first!");return}if(sel.dataset.w===b.dataset.t){sel.classList.remove("sel");sel.classList.add("ok");b.classList.add("ok");sel=null;got++;sfx("ok");if(got===6)choreDone(Math.max(0,6-miss),6,"Firewood")}else{miss++;sfx("bad");b.classList.remove("no");void b.offsetWidth;b.classList.add("no")}})}
-function choreCook(){const R=RECIPES[S.level][(S.day-1)%3],steps=R[1];let pool;do{pool=shuffle(steps)}while(pool.join()===steps.join());let built=[];
+function choreCook(){const R=RECIPES[S.level==="A2"?"A2":"B1"][(S.day-1)%3],steps=R[1];let pool;do{pool=shuffle(steps)}while(pool.join()===steps.join());let built=[];
  modal(`🍳 Cook dinner: ${R[0]}`,`<p class="instr">Click the steps in the correct order.</p><div class="lab">Your recipe</div><div class="steps" id="built"></div><div class="lab" id="plab">Steps</div><div class="steps" id="pool"></div><div class="row" style="margin-top:10px"><button class="btn ghost small" id="rr">↺ Start again</button><button class="btn green" id="rc" disabled>✓ Check</button></div>`,true);
  const draw=()=>{$("#built").innerHTML=built.map((s,k)=>`<div class="step" data-k="${k}"><b>${k+1}</b>${esc(s)}</div>`).join("")||`<div class="instr">…</div>`;$("#pool").innerHTML=pool.map((s,k)=>`<button class="step" data-p="${k}">${esc(s)}</button>`).join("");$$("#pool [data-p]").forEach(b=>b.onclick=()=>{sfx("click");built.push(pool.splice(+b.dataset.p,1)[0]);draw()});$("#rc").disabled=pool.length>0};
  $("#rr").onclick=()=>{pool=pool.concat(built);built=[];draw()};
  $("#rc").onclick=()=>{let c=0;$$("#built .step").forEach((e,k)=>{const ok=built[k]===steps[k];e.classList.add(ok?"right":"wrong");if(ok)c++});$("#rc").remove();$("#rr").remove();$("#plab").remove();
   if(c<5)$("#built").insertAdjacentHTML("afterend",`<div class="clue" style="margin-top:10px">✅ Correct order:<br>${steps.map((s,k)=>`${k+1}. ${esc(s)}`).join("<br>")}</div>`);choreDone(c,5,"Recipe")};draw()}
-function choreWater(){const rows=freshPick("odd-"+S.level,ODD[S.level],5);let got=0,i=0;
+function choreWater(){const rows=freshPick("odd-"+S.level,lvPool(ODD),5);let got=0,i=0;
  modal("💧 Fetch water",`<p class="instr">Which word is the odd one out? Every correct answer fills the bucket!</p><div class="bucket"><i id="bk"></i></div><div id="odd"></div>`,true);
  const draw=()=>{const r=rows[i],w=shuffle(r[0]);$("#odd").innerHTML=`<div class="oddrow"><span class="n">${i+1}.</span>${w.map(x=>`<button class="opt" data-w="${esc(x)}">${esc(x)}</button>`).join("")}</div><div id="ow"></div>`;
   $$("#odd [data-w]").forEach(b=>b.onclick=()=>{const ok=b.dataset.w===r[0][0];$$("#odd [data-w]").forEach(x=>{x.disabled=true;if(x.dataset.w===r[0][0])x.classList.add("right")});if(!ok)b.classList.add("wrong");else got++;sfx(ok?"ok":"bad");$("#bk").style.width=(got/5*100)+"%";
@@ -1092,13 +1101,13 @@ function openChat(){const pid=chatPartner(),pc=CH(pid),C=CHATS[S.day-1],ex={p:pn
 /* ================= DIARY ROOM ================= */
 let TIMER=null,REC=null;
 function stopTimer(){if(TIMER){clearInterval(TIMER);TIMER=null}if(REC&&REC.state==="recording"){try{REC.stop()}catch(e){}}}
-function openDiary(){const D=DIARY[S.day-1],secs=S.level==="A2"?45:60,ex={a:pname(S.news[0]),b:pname(S.news[1])};let left=secs,chosen=-1,chunks=[];
+function openDiary(){const D=DIARY[S.day-1],secs={A2:45,"A2+":50,B1:60}[S.level]||60,ex={a:pname(S.news[0]),b:pname(S.news[1])};let left=secs,chosen=-1,chunks=[];
  modal("🎥 Diary Room",`${IMG.obj&&IMG.obj.diary?`<img src="${IMG.obj.diary}" style="float:left;width:230px;margin:0 16px 8px 0">`:""}<p class="instr">You're alone with the camera. Choose a topic and speak out loud for ${secs} seconds — the viewers are watching! You can record yourself and listen back.</p>
  <div class="speakcard" style="overflow:hidden"><div class="prompts">${D.prompts.map((p,i)=>`<button class="opt" data-i="${i}">🎬 ${fill(p,ex)}</button>`).join("")}</div>
  <div class="sclock" id="dc">${Math.floor(secs/60)}:${String(secs%60).padStart(2,"0")}</div>
  <div class="row center"><button class="btn" id="dgo" disabled>▶ Start the timer</button><button class="btn ghost" id="drec">🎙️ Record</button><button class="btn ghost small" id="dmod">👀 Example answer</button></div><audio controls hidden style="margin-top:10px"></audio>
  <div class="modelbox">${fill(D.model,ex)}</div>
- <div class="lab" style="text-align:left">✅ Check yourself</div><div class="checks">${D[S.level].map((c,i)=>`<label><input type="checkbox" data-c="${i}"> ${esc(c)}</label>`).join("")}</div>
+ <div class="lab" style="text-align:left">✅ Check yourself</div><div class="checks">${D[S.level==="B1"?"B1":"A2"].map((c,i)=>`<label><input type="checkbox" data-c="${i}"> ${esc(c)}</label>`).join("")}</div>
  <div class="row center" style="margin-top:10px"><button class="btn green" id="ddone" disabled>✅ I've finished speaking</button></div></div>`,true);
  const C=$("#dc"),showT=()=>{C.textContent=Math.floor(left/60)+":"+String(left%60).padStart(2,"0");C.classList.toggle("low",left<=10)};
  $$("#mb [data-i]").forEach(b=>b.onclick=()=>{chosen=+b.dataset.i;$$("#mb [data-i]").forEach(x=>x.classList.toggle("sel",x===b));$("#dgo").disabled=false;$("#ddone").disabled=false;sfx("click")});
