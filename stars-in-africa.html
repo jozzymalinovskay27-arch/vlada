@@ -119,6 +119,14 @@ button{font-family:inherit;cursor:pointer}
 #modal .wh .x{border:none;background:rgba(255,255,255,.25);color:#fff;border-radius:50%;width:36px;height:36px;font-weight:900;font-size:18px}
 #modal .wb{padding:18px 22px;overflow:auto;flex:1;font-size:16px;line-height:1.5}
 .instr{font-weight:800;color:var(--muted);margin:0 0 10px}
+#volpop{position:absolute;z-index:85;width:300px;background:#fffaf0;border-radius:20px;box-shadow:0 12px 30px rgba(0,0,0,.35);border:3px solid #fff;padding:12px 16px;display:none}
+#volpop.on{display:block;animation:tin .15s ease-out}
+#volpop .vt{font:600 18px Fredoka,Nunito,sans-serif;color:#8a4a12;margin-bottom:6px}
+#volpop .vrow{display:flex;align-items:center;gap:10px;margin:8px 0}
+#volpop .vl{width:82px;font-weight:900;font-size:14px;white-space:nowrap}
+#volpop input{flex:1;accent-color:var(--sun-d);height:22px;cursor:pointer}
+#volpop b{width:42px;text-align:right;font-size:14px}
+#volpop .vh{font-size:12px;font-weight:800;color:var(--muted)}
 #toasts{position:absolute;left:50%;top:74px;transform:translateX(-50%);z-index:80;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
 .toast{background:#2b1d0e;color:#fff;border-radius:999px;padding:8px 18px;font-weight:900;font-size:15px;box-shadow:0 6px 16px rgba(0,0,0,.3);animation:tin .25s ease-out}
 .toast.good{background:var(--green-d)}.toast.bad{background:var(--red-d)}
@@ -375,8 +383,8 @@ details.ru summary{font-weight:900;cursor:pointer}
   <div class="tbox"><div class="bigstar">⭐</div><h1><small>STARS IN</small><b>AFRICA</b></h1><p>The English survival show · A2–B1</p>
    <div class="row center"><button class="btn big green" id="b-new">🎬 New show</button><button class="btn big" id="b-cont" style="display:none">▶ Continue</button><button class="btn big ghost" id="b-how">❓ How to play</button></div></div>
   <div class="credit">7 days · 8 people · 1 camp · lots of English</div>
-  <div style="position:absolute;right:14px;bottom:10px;color:rgba(255,255,255,.55);font-weight:800;font-size:12px">version 16</div>
-  <button class="ib" id="t-mus" title="Music" style="position:absolute;right:18px;top:16px;width:46px;height:46px;font-size:22px">🎵</button>
+  <div style="position:absolute;right:14px;bottom:10px;color:rgba(255,255,255,.55);font-weight:800;font-size:12px">version 17</div>
+  <button class="ib volbtn" id="t-mus" title="Music and sounds" style="position:absolute;right:18px;top:16px;width:46px;height:46px;font-size:22px">🎵</button>
  </div>
  <div class="screen" id="cast"></div>
  <div class="screen" id="camp">
@@ -388,8 +396,9 @@ details.ru summary{font-weight:900;cursor:pointer}
   <div class="sched" id="sched"></div>
  </div>
  <div class="screen" id="trial"><div id="tbg"></div><div id="tscene"></div><div class="ttop" id="thud"></div><div id="qp"></div></div>
- <div class="screen" id="night"><div class="nst"></div><div id="nstage"></div><div id="nbox"></div></div>
+ <div class="screen" id="night"><div class="nst"></div><div id="nstage"></div><div id="nbox"></div><button class="ib volbtn" id="n-vol" title="Music and sounds" style="position:absolute;right:18px;top:16px;width:46px;height:46px;font-size:22px;z-index:5">🎵</button></div>
  <div class="screen" id="end"></div>
+ <div id="volpop"></div>
  <div id="toasts"></div>
  <div id="modal"><div class="win"><div class="wh"><h2 id="mt"></h2><button class="x" id="mx">✕</button></div><div class="wb" id="mb"></div></div></div>
  <div id="fade"></div>
@@ -419,12 +428,12 @@ function boom(n){const em=["⭐","✨","🎉","🌟","💛"];for(let i=0;i<(n||2
 const aan=w=>(/^[aeiou]/i.test(w)?"an ":"a ")+w;
 
 /* ================= SOUND (synthesised, no voice) ================= */
-let AC=null,MUTE=false;try{MUTE=localStorage.getItem("sia-mute")==="1"}catch(e){}
+let AC=null,SFXVOL=1;try{const v=localStorage.getItem("sia-sfxvol");SFXVOL=v!==null?+v:(localStorage.getItem("sia-mute")==="1"?0:1)}catch(e){}
 function ac(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==="suspended")AC.resume();return AC}
-function tone(f,d,type,vol,when,slide){const a=ac();if(!a||MUTE)return;const t=a.currentTime+(when||0),o=a.createOscillator(),g=a.createGain();o.type=type||"sine";o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(slide,t+d);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol||.2,t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.05)}
-function noise(d,vol,when,freq){const a=ac();if(!a||MUTE)return;const t=a.currentTime+(when||0),len=Math.floor(a.sampleRate*d),buf=a.createBuffer(1,len,a.sampleRate),ch=buf.getChannelData(0);for(let i=0;i<len;i++)ch[i]=(Math.random()*2-1)*(1-i/len);const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();s.buffer=buf;f.type="bandpass";f.frequency.value=freq||800;g.gain.value=vol||.3;s.connect(f);f.connect(g);g.connect(a.destination);s.start(t)}
+function tone(f,d,type,vol,when,slide){const a=ac();if(!a||SFXVOL<=0)return;const t=a.currentTime+(when||0),o=a.createOscillator(),g=a.createGain();o.type=type||"sine";o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(slide,t+d);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime((vol||.2)*SFXVOL,t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+function noise(d,vol,when,freq){const a=ac();if(!a||SFXVOL<=0)return;const t=a.currentTime+(when||0),len=Math.floor(a.sampleRate*d),buf=a.createBuffer(1,len,a.sampleRate),ch=buf.getChannelData(0);for(let i=0;i<len;i++)ch[i]=(Math.random()*2-1)*(1-i/len);const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();s.buffer=buf;f.type="bandpass";f.frequency.value=freq||800;g.gain.value=(vol||.3)*SFXVOL;s.connect(f);f.connect(g);g.connect(a.destination);s.start(t)}
 function pluck(f,when,vol,dur){tone(f,dur||.7,"sine",vol||.16,when);tone(f*4.07,(dur||.7)*.25,"sine",(vol||.16)*.18,when);tone(f*2,(dur||.7)*.5,"triangle",(vol||.16)*.12,when)}
-function thud(f,when,vol){const a=ac();if(!a||MUTE)return;const t=a.currentTime+(when||0),o=a.createOscillator(),g=a.createGain();o.type="sine";o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f*.55,t+.18);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol||.35,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+.32);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+.4);noise(.04,(vol||.35)*.25,when,1800)}
+function thud(f,when,vol){const a=ac();if(!a||SFXVOL<=0)return;const t=a.currentTime+(when||0),o=a.createOscillator(),g=a.createGain();o.type="sine";o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f*.55,t+.18);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime((vol||.35)*SFXVOL,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+.32);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+.4);noise(.04,(vol||.35)*.25,when,1800)}
 function shaker(when,vol){noise(.09,vol||.07,when,6000)}
 const SFX={
  click(){tone(1400,.035,"sine",.08,0,900);noise(.015,.05,0,3000)},
@@ -443,18 +452,30 @@ const SFX={
 function sfx(k){try{SFX[k]&&SFX[k]()}catch(e){}}
 
 /* ================= MUSIC & AMBIENT SOUNDS ================= */
-let MUSIC_ON=true;try{MUSIC_ON=localStorage.getItem("sia-music")!=="0"}catch(e){}
+let MUSVOL=1;try{const v=localStorage.getItem("sia-musvol");MUSVOL=v!==null?+v:(localStorage.getItem("sia-music")==="0"?0:1)}catch(e){}
 const MUS=new Audio();MUS.volume=0;let musKey=null,musFade=null,RECORDING=false;
 const MVOL={title:.5,day:.45,night:.5,trial:.28,win:.7};
 function musFadeTo(v,cb){clearInterval(musFade);musFade=setInterval(()=>{const d=v-MUS.volume;if(Math.abs(d)<=.03){MUS.volume=v;clearInterval(musFade);musFade=null;if(cb)cb();return}MUS.volume=Math.max(0,Math.min(1,MUS.volume+Math.sign(d)*.03))},35)}
-function setMusic(k){if(typeof AUD==="undefined"||!AUD[k]||!MUSIC_ON||RECORDING||document.hidden)k=null;
- if(k===musKey){if(k){if(MUS.paused)MUS.play().catch(()=>{});musFadeTo(MVOL[k])}return}
- musFadeTo(0,()=>{musKey=k;if(!k){MUS.pause();return}MUS.src=AUD[k];MUS.loop=k!=="win";MUS.currentTime=0;MUS.play().catch(()=>{});musFadeTo(MVOL[k])})}
+function setMusic(k){if(typeof AUD==="undefined"||!AUD[k]||MUSVOL<=0||RECORDING||document.hidden)k=null;
+ if(k===musKey){if(k){if(MUS.paused)MUS.play().catch(()=>{});musFadeTo(MVOL[k]*MUSVOL)}return}
+ musFadeTo(0,()=>{musKey=k;if(!k){MUS.pause();return}MUS.src=AUD[k];MUS.loop=k!=="win";MUS.currentTime=0;MUS.play().catch(()=>{});musFadeTo(MVOL[k]*MUSVOL)})}
 function musicFor(id){id=id||($$(".screen.on")[0]||{}).id;return id==="title"||id==="cast"?"title":id==="camp"?(S&&phase()===3?"night":"day"):id==="trial"?"trial":id==="night"?"night":id==="end"?(S&&S.place===1?"win":"title"):null}
 function updateMusic(){setMusic(musicFor())}
-document.addEventListener("pointerdown",()=>{if(musKey&&MUS.paused&&MUSIC_ON)MUS.play().catch(()=>{})});
+document.addEventListener("pointerdown",()=>{if(musKey&&MUS.paused&&MUSVOL>0)MUS.play().catch(()=>{})});
 document.addEventListener("visibilitychange",()=>{if(document.hidden){MUS.pause()}else updateMusic()});
-function toggleMusic(){MUSIC_ON=!MUSIC_ON;try{localStorage.setItem("sia-music",MUSIC_ON?"1":"0")}catch(e){}if(!MUSIC_ON){musKey=null;musFadeTo(0,()=>MUS.pause())}else updateMusic();const b=$("#t-mus");if(b)b.textContent=MUSIC_ON?"🎵":"🔇";renderHUD()}
+/* volume panel: one slider for music, one for sound effects (0 = off); remembered in this browser */
+const volIcon=()=>MUSVOL<=0&&SFXVOL<=0?"🔇":"🎵";
+function refreshVolIcons(){$$(".volbtn").forEach(b=>b.textContent=volIcon())}
+function openVol(btn){const P=$("#volpop");if(P.classList.contains("on")&&P.dataset.for===btn.id){P.classList.remove("on");return}
+ const st=$("#stage").getBoundingClientRect(),k=st.width/1280,r=btn.getBoundingClientRect();
+ P.dataset.for=btn.id;P.style.left=Math.max(8,Math.min(1280-308,(r.right-st.left)/k-300))+"px";P.style.top=((r.bottom-st.top)/k+8)+"px";
+ const row=(id,ic,lab,v)=>`<div class="vrow"><span class="vl">${ic} ${lab}</span><input type="range" min="0" max="100" step="5" id="${id}" value="${Math.round(v*100)}"><b id="${id}-n">${Math.round(v*100)}%</b></div>`;
+ P.innerHTML=`<div class="vt">🎚️ Volume</div>${row("v-mus","🎵","Music",MUSVOL)}${row("v-sfx","🔊","Sounds",SFXVOL)}<div class="vh">0% = off</div>`;P.classList.add("on");
+ $("#v-mus").oninput=e=>{MUSVOL=+e.target.value/100;$("#v-mus-n").textContent=e.target.value+"%";try{localStorage.setItem("sia-musvol",MUSVOL)}catch(x){}
+  if(MUSVOL<=0){if(musKey){musKey=null;clearInterval(musFade);MUS.volume=0;MUS.pause()}}else if(musKey){clearInterval(musFade);MUS.volume=Math.min(1,MVOL[musKey]*MUSVOL)}else updateMusic();refreshVolIcons()};
+ $("#v-sfx").oninput=e=>{SFXVOL=+e.target.value/100;$("#v-sfx-n").textContent=e.target.value+"%";try{localStorage.setItem("sia-sfxvol",SFXVOL)}catch(x){}refreshVolIcons()};
+ $("#v-sfx").onchange=()=>sfx("ok")}
+document.addEventListener("pointerdown",e=>{const P=$("#volpop");if(P&&P.classList.contains("on")&&!e.target.closest("#volpop")&&!e.target.closest(".volbtn"))P.classList.remove("on")});
 
 /* ================= CHARACTERS ================= */
 const CHARS=[
@@ -875,7 +896,7 @@ function setBgs(){const B=IMG.bg||{};$("#nstage").innerHTML=(IMG.obj&&IMG.obj.st
 setBgs();
 $("#b-new").onclick=()=>{sfx("click");fade(()=>{buildCast();show("cast")})};
 $("#b-cont").onclick=()=>{sfx("click");S=load();if(!S)return;fade(enterCamp)};
-$("#b-how").onclick=()=>howTo();$("#t-mus").onclick=toggleMusic;$("#t-mus").textContent=MUSIC_ON?"🎵":"🔇";setMusic("title");
+$("#b-how").onclick=()=>howTo();$("#t-mus").onclick=e=>openVol(e.currentTarget);$("#n-vol").onclick=e=>openVol(e.currentTarget);refreshVolIcons();setMusic("title");
 if(load())$("#b-cont").style.display="";
 
 function howTo(){modal("❓ How to play",`<div class="rules">
@@ -913,8 +934,8 @@ function startDay(){S.done={};S.today=0;const p=shuffle(present());S.news=[p[0],
 function enterCamp(){show("camp");renderCamp();startChatter()}
 function phase(){const n=TASKS.filter(t=>S.done[t[0]]).length;return n<=1?0:n<=3?1:n===4?2:3}
 function renderHUD(){if(!S||!$("#hud"))return;const acc=S.total?Math.round(S.right/S.total*100):0;
- $("#hud").innerHTML=`<div class="logo">⭐ STARS IN <b>AFRICA</b></div><div class="chip">📅 Day ${S.day} / 7</div><div class="chip">⭐ ${S.stars} stars</div><div class="chip">❤️ ${S.pop} popularity</div><div class="chip">✅ ${acc}% correct</div><div class="chip">👥 ${present().length+1} in the camp</div><span style="flex:1"></span><button class="ib" id="h-help" title="How to play">❓</button><button class="ib" id="h-mus" title="Music">${MUSIC_ON?"🎵":"🚫"}</button><button class="ib" id="h-snd" title="Sound effects">${MUTE?"🔇":"🔊"}</button><button class="ib" id="h-home" title="Main menu">🏠</button>`;
- $("#h-help").onclick=howTo;$("#h-mus").onclick=toggleMusic;$("#h-snd").onclick=()=>{MUTE=!MUTE;try{localStorage.setItem("sia-mute",MUTE?"1":"0")}catch(e){}renderHUD()};
+ $("#hud").innerHTML=`<div class="logo">⭐ STARS IN <b>AFRICA</b></div><div class="chip">📅 Day ${S.day} / 7</div><div class="chip">⭐ ${S.stars} stars</div><div class="chip">❤️ ${S.pop} popularity</div><div class="chip">✅ ${acc}% correct</div><div class="chip">👥 ${present().length+1} in the camp</div><span style="flex:1"></span><button class="ib" id="h-help" title="How to play">❓</button><button class="ib volbtn" id="h-vol" title="Music and sounds">${volIcon()}</button><button class="ib" id="h-home" title="Main menu">🏠</button>`;
+ $("#h-help").onclick=howTo;$("#h-vol").onclick=e=>openVol(e.currentTarget);
  $("#h-home").onclick=()=>{save();stopChatter();fade(()=>{$("#b-cont").style.display=load()?"":"none";show("title")})}}
 function renderCamp(){const ph=phase();if($("#camp").classList.contains("on"))updateMusic();
  $("#bgnight").style.opacity=ph===3?1:0;
@@ -1034,8 +1055,8 @@ function goTrial(){const def=TRIALS[S.day-1];stopChatter();fade(()=>{T={def,qs:d
  $("#tscene").insertAdjacentHTML("afterend",``);
  const ov=document.createElement("div");ov.className="intro";ov.innerHTML=`${HB(0)}${HB(1)}<div class="card"><div class="ti">${def.icon}</div><h2>${def.name}</h2>${hostsHTML(`Day ${S.day} trial`)}<p>${def.intro}</p><p style="font-size:15px;color:var(--muted)">Too scary? You can always shout <b>“Get me out of here!”</b> — but the public won't like it…</p><button class="btn big green">💪 I'm ready!</button></div>`;
  $("#trial").appendChild(ov);ov.querySelector("button").onclick=()=>{sfx("click");ov.remove();def.build($("#tscene"));if(def.hint){const h=document.createElement("div");h.className="hint";h.textContent=def.hint;$("#tscene").appendChild(h)}}})}
-function trialHUD(){$("#thud").innerHTML=`<h2>${T.def.icon} ${T.def.name}</h2><div class="tstars">${T.res.map(r=>`<i class="${r===true?"on":r===false?"x":""}">⭐</i>`).join("")}</div><span style="flex:1"></span><button class="btn red small" id="quit">🆘 Get me out of here!</button>`;
- $("#quit").onclick=()=>{modal("🆘 Are you sure?",`<p style="font-size:18px;font-weight:800">If you leave the trial now, you keep the stars you have — but the public won't be happy (−5 ❤️).</p><div class="row"><button class="btn green" id="qno">💪 No, I'll continue!</button><button class="btn red" id="qyes">🆘 Yes, get me out of here!</button></div>`);$("#qno").onclick=closeModal;$("#qyes").onclick=()=>{closeModal();endTrial(true)}}}
+function trialHUD(){$("#thud").innerHTML=`<h2>${T.def.icon} ${T.def.name}</h2><div class="tstars">${T.res.map(r=>`<i class="${r===true?"on":r===false?"x":""}">⭐</i>`).join("")}</div><span style="flex:1"></span><button class="ib volbtn" id="tr-vol" title="Music and sounds">${volIcon()}</button><button class="btn red small" id="quit">🆘 Get me out of here!</button>`;
+ $("#tr-vol").onclick=e=>openVol(e.currentTarget);$("#quit").onclick=()=>{modal("🆘 Are you sure?",`<p style="font-size:18px;font-weight:800">If you leave the trial now, you keep the stars you have — but the public won't be happy (−5 ❤️).</p><div class="row"><button class="btn green" id="qno">💪 No, I'll continue!</button><button class="btn red" id="qyes">🆘 Yes, get me out of here!</button></div>`);$("#qno").onclick=closeModal;$("#qyes").onclick=()=>{closeModal();endTrial(true)}}}
 function trialAsk(i){if(!T||T.busy||T.res[i]!==null)return;T.busy=true;T.cur=i;const q=T.qs[i],d=T.def;if(d.onOpen)d.onOpen(i);
  const tg=$("#tscene .hint");if(tg)tg.remove();$("#qp").classList.add("on");
  askQ($("#qp"),q,{head:d.head?d.head(i,q):"",skip:d.skip,tag:`${d.icon} Star ${i+1} of ${T.qs.length}`,onAnswer:d.onAnswer},ok=>{$("#qp").classList.remove("on");T.res[i]=ok;T.busy=false;if(ok)sfx("star");d.onResult(i,ok);trialHUD();
