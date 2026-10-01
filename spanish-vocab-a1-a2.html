@@ -1,0 +1,1037 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Испанская лексика A1–A2</title>
+<meta name="description" content="Интерактивный тест по лексике испанского языка уровней A1 и A2 со скрытыми ответами, словариками и объяснениями на русском.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f3ec; --surface:#fffdf8; --surface-2:#f0ebe0; --text:#1e1b16; --muted:#6a6457;
+  --border:#e2dccf; --border-strong:#cbc2b0;
+  --accent:#b8321d; --accent-ink:#ffffff; --accent-soft:#f8e6e0; --gold:#e0a419;
+  --ok:#1d7448; --ok-soft:#e1f2e8; --bad:#b3261e; --bad-soft:#fbe7e5; --warn:#8a5a00; --warn-soft:#fdf1d3;
+  --a1:#235f9e; --a1-soft:#e2ecf7; --a2:#7340a8; --a2-soft:#efe6f8;
+  --shadow:0 1px 2px rgba(40,30,10,.05),0 4px 14px rgba(40,30,10,.05);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14130f; --surface:#1d1b17; --surface-2:#27241e; --text:#ece7dc; --muted:#a39c8c;
+    --border:#34302a; --border-strong:#4b453a;
+    --accent:#f08066; --accent-ink:#1b0f0b; --accent-soft:#3b201a; --gold:#e8b53a;
+    --ok:#5fcb92; --ok-soft:#16301f; --bad:#f2867b; --bad-soft:#3a1b19; --warn:#e6b84f; --warn-soft:#352a12;
+    --a1:#86b6ee; --a1-soft:#1b2a3c; --a2:#c49cf0; --a2-soft:#2c2140;
+    --shadow:0 1px 2px rgba(0,0,0,.3);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14130f; --surface:#1d1b17; --surface-2:#27241e; --text:#ece7dc; --muted:#a39c8c;
+  --border:#34302a; --border-strong:#4b453a;
+  --accent:#f08066; --accent-ink:#1b0f0b; --accent-soft:#3b201a; --gold:#e8b53a;
+  --ok:#5fcb92; --ok-soft:#16301f; --bad:#f2867b; --bad-soft:#3a1b19; --warn:#e6b84f; --warn-soft:#352a12;
+  --a1:#86b6ee; --a1-soft:#1b2a3c; --a2:#c49cf0; --a2-soft:#2c2140;
+  --shadow:0 1px 2px rgba(0,0,0,.3);
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:80px}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:16px;line-height:1.55;-webkit-text-size-adjust:100%}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.flagbar{height:6px;background:linear-gradient(var(--accent) 0 25%,var(--gold) 25% 75%,var(--accent) 75%)}
+
+/* Hero */
+.hero{position:relative;padding:34px 16px 18px}
+.eyebrow{margin:0 0 6px;font-size:.78rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+h1{font-family:Lora,Georgia,serif;font-size:clamp(1.8rem,5vw,2.5rem);line-height:1.15;margin:0 0 10px;font-weight:700;padding-right:48px}
+h1 span{color:var(--accent);white-space:nowrap}
+.lead{margin:0 0 6px;color:var(--muted);max-width:640px}
+.meta{margin:0;font-size:.9rem;color:var(--muted)}
+.meta b{color:var(--text);font-weight:600}
+.theme-toggle{position:absolute;top:30px;right:16px;width:40px;height:40px;border-radius:50%;border:1px solid var(--border);background:var(--surface);display:grid;place-items:center;color:var(--muted)}
+.theme-toggle:hover{color:var(--text);border-color:var(--border-strong)}
+.theme-toggle svg{width:18px;height:18px}
+
+/* Controls */
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:flex-end;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+.ctl{display:flex;flex-direction:column;gap:5px;min-width:0}
+.lbl{font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.seg{display:inline-flex;background:var(--surface-2);border-radius:10px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;padding:7px 13px;border-radius:8px;color:var(--muted);font-weight:500;font-size:.93rem;white-space:nowrap}
+.seg button:hover{color:var(--text)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+select{appearance:none;-webkit-appearance:none;background:var(--surface-2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23888' stroke-width='1.8'/%3E%3C/svg%3E") no-repeat right 12px center;border:0;border-radius:10px;padding:9px 34px 9px 12px;font-size:.93rem;max-width:100%;min-width:200px}
+.ctl-actions{flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px;margin-left:auto}
+.switch{display:inline-flex;align-items:center;gap:8px;font-size:.93rem;cursor:pointer;user-select:none;padding:6px 0}
+.switch input{width:18px;height:18px;accent-color:var(--accent);margin:0}
+.ghost{background:transparent;border:1px solid var(--border-strong);color:var(--muted);border-radius:9px;padding:7px 12px;font-size:.88rem;font-weight:500}
+.ghost:hover{color:var(--text);border-color:var(--text)}
+.ghost.danger:hover{color:var(--bad);border-color:var(--bad)}
+body.view-topics #shuffleBtn{display:none}
+
+/* Sticky stats */
+.statbar{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--border);margin-top:16px}
+.statbar-in{display:flex;align-items:center;gap:14px;padding-top:10px;padding-bottom:10px;flex-wrap:wrap}
+.prog{flex:1 1 220px;height:10px;border-radius:99px;background:var(--surface-2);display:flex;overflow:hidden;border:1px solid var(--border)}
+.prog span{height:100%;transition:width .35s ease}
+.prog .p-ok{background:var(--ok)}
+.prog .p-bad{background:var(--bad)}
+.prog .p-rev{background:var(--warn)}
+.counts{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;font-size:.88rem;color:var(--muted)}
+.counts b{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:0}
+.dot.ok{background:var(--ok)}.dot.bad{background:var(--bad)}.dot.rev{background:var(--warn)}
+.counts a{color:var(--accent);font-weight:600;text-decoration:none}
+.counts a:hover{text-decoration:underline}
+
+/* Topics */
+main{padding-top:6px;padding-bottom:20px}
+.topic{margin-top:34px}
+.topic-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.topic-head h2{font-family:Lora,Georgia,serif;font-size:1.4rem;margin:0;font-weight:700;line-height:1.25}
+.chip{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.03em;padding:2px 8px;border-radius:99px;line-height:1.5;flex:none}
+.chip.A1{background:var(--a1-soft);color:var(--a1)}
+.chip.A2{background:var(--a2-soft);color:var(--a2)}
+details.rule{background:var(--surface-2);border-radius:12px;padding:0 16px;margin-bottom:14px;border:1px solid var(--border)}
+details.rule summary{cursor:pointer;font-weight:600;color:var(--accent);padding:10px 0;list-style:none;font-size:.95rem}
+details.rule summary::-webkit-details-marker{display:none}
+details.rule summary::before{content:"▸";display:inline-block;width:1.1em;transition:transform .2s}
+details.rule[open] summary::before{transform:rotate(90deg)}
+details.rule .rule-body{padding:0 0 14px;font-size:.95rem}
+.cards{display:grid;gap:14px}
+.gl{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:3px 20px}
+.gl b{font-weight:600}
+.gl-note{margin:0 0 10px}
+
+/* Card */
+.card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--border);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow)}
+.card.is-correct{border-left-color:var(--ok)}
+.card.is-wrong{border-left-color:var(--bad)}
+.card.is-revealed{border-left-color:var(--warn)}
+.card-head{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;font-size:.8rem;color:var(--muted)}
+.num{font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;min-width:1.6em}
+.tname{font-weight:500}
+.qtype{margin-left:auto}
+.q{font-size:1.17rem;margin:8px 0 14px;font-weight:500;line-height:1.6}
+.blank{display:inline-block;min-width:3.4em;border-bottom:2px dashed var(--border-strong);text-align:center;padding:0 4px;line-height:1.3}
+.blank .b-fill{display:none;color:var(--ok);font-weight:600}
+.card.done .blank,.reveal-all .blank{border-bottom-style:solid;border-bottom-color:var(--ok)}
+.card.done .blank .b-empty,.reveal-all .blank .b-empty{display:none}
+.card.done .blank .b-fill,.reveal-all .blank .b-fill{display:inline}
+
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{font-size:1rem;padding:9px 16px;min-height:44px;border:1.5px solid var(--border-strong);background:var(--surface);color:var(--text);border-radius:10px;transition:background .15s,border-color .15s}
+.opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+.opt:disabled{cursor:default}
+.opt.correct,.reveal-all .opt.is-answer{border-color:var(--ok);background:var(--ok-soft);color:var(--ok);font-weight:600}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft);color:var(--bad);text-decoration:line-through}
+.opt.dim{opacity:.5}
+
+.inp{display:flex;flex-wrap:wrap;gap:8px}
+.inp input{flex:1 1 220px;min-width:0;font-size:1.05rem;padding:10px 12px;border:1.5px solid var(--border-strong);border-radius:10px;background:var(--surface);min-height:44px}
+.inp input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.inp input.ok{border-color:var(--ok);background:var(--ok-soft);color:var(--ok);font-weight:600}
+.inp input.bad{border-color:var(--bad);background:var(--bad-soft);color:var(--bad);text-decoration:line-through}
+.inp input.almost{border-color:var(--warn);background:var(--warn-soft);color:var(--warn)}
+.inp input:disabled{opacity:1;-webkit-text-fill-color:currentColor}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:10px 18px;font-weight:600;min-height:44px}
+.btn:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.4;cursor:default;filter:none}
+.accents{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.acc{width:36px;height:34px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);font-size:1rem;padding:0}
+.acc:hover{border-color:var(--accent)}
+.shake{animation:shake .35s}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+.answer{display:none;margin-top:14px;padding:12px 14px;border-radius:10px;background:var(--surface-2);font-size:.97rem}
+.card.done .answer,.reveal-all .answer{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+.verdict{font-weight:700;margin-bottom:4px}
+.verdict.ok{color:var(--ok)}.verdict.bad{color:var(--bad)}.verdict.warn{color:var(--warn)}
+.answer .right b{color:var(--ok)}
+.answer .tr{color:var(--muted);font-style:italic;margin-top:2px}
+.answer .ex{margin-top:8px}
+.answer i{font-style:italic}
+
+.card-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+.card.done .reveal{display:none}
+.card:not(.done) .retry{display:none}
+
+.empty{margin-top:30px;text-align:center;color:var(--muted)}
+
+/* Results */
+.results{margin-top:10px;padding-bottom:10px}
+.results-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:var(--shadow)}
+.results h2{font-family:Lora,Georgia,serif;font-size:1.5rem;margin:0 0 6px}
+.summary{margin:0 0 6px}
+.advice{margin:0 0 14px;color:var(--muted);font-size:.95rem}
+.trows{display:grid;gap:4px}
+.trow{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(70px,140px) 3.4em;align-items:center;gap:10px;width:100%;text-align:left;background:transparent;border:0;border-radius:8px;padding:7px 8px}
+.trow:hover{background:var(--surface-2)}
+.trow .tn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.95rem}
+.tbar{display:flex;height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;border:1px solid var(--border)}
+.tbar i{display:block;height:100%}
+.tbar .ok{background:var(--ok)}.tbar .bad{background:var(--bad)}.tbar .rev{background:var(--warn)}
+.tnum{font-size:.85rem;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+
+footer{color:var(--muted);font-size:.85rem;padding:20px 16px 40px}
+
+@media (max-width:600px){
+  .hero{padding-top:26px}
+  .theme-toggle{top:22px}
+  .controls{flex-direction:column;align-items:stretch}
+  .ctl-actions{margin-left:0}
+  .seg{display:flex}
+  .seg button{flex:1;padding:8px 6px}
+  select{width:100%;min-width:0}
+  .card{padding:14px}
+  .q{font-size:1.1rem}
+  .qtype{display:none}
+  .counts{gap:2px 10px;font-size:.82rem}
+  .trow{grid-template-columns:auto minmax(0,1fr) 3em}
+  .trow .tbar{grid-column:1 / -1;order:4}
+}
+@media print{
+  .statbar,.controls,.card-foot,.theme-toggle,.accents,.inp .btn,.results,.flagbar{display:none!important}
+  body{background:#fff;color:#000}
+  .card{break-inside:avoid;box-shadow:none}
+  .answer{display:block!important}
+  .blank .b-empty{display:none!important}
+  .blank .b-fill{display:inline!important}
+  details.rule{display:block}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body class="view-topics">
+<div class="flagbar" aria-hidden="true"></div>
+
+<header class="wrap hero">
+  <p class="eyebrow">Español · vocabulario</p>
+  <h1>Испанская лексика <span>A1–A2</span></h1>
+  <p class="lead">Выберите вариант или впишите слово — сразу увидите правильный ответ и объяснение на русском: значение, род, примеры и типичные ловушки. В начале каждой темы есть словарик. Не знаете ответа? Нажмите «Показать ответ».</p>
+  <p class="meta" id="meta"></p>
+  <button class="theme-toggle" id="themeBtn" type="button" aria-label="Сменить тему оформления" title="Светлая / тёмная тема">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+  </button>
+</header>
+
+<section class="wrap" aria-label="Настройки теста">
+  <div class="controls">
+    <div class="ctl">
+      <span class="lbl" id="lvlLbl">Уровень</span>
+      <div class="seg" id="levelSeg" role="group" aria-labelledby="lvlLbl">
+        <button type="button" data-level="all">Все</button>
+        <button type="button" data-level="A1">A1</button>
+        <button type="button" data-level="A2">A2</button>
+      </div>
+    </div>
+    <div class="ctl">
+      <label class="lbl" for="topicSel">Тема</label>
+      <select id="topicSel"></select>
+    </div>
+    <div class="ctl">
+      <span class="lbl" id="viewLbl">Порядок</span>
+      <div class="seg" id="viewSeg" role="group" aria-labelledby="viewLbl">
+        <button type="button" data-view="topics">По темам</button>
+        <button type="button" data-view="mixed">Вперемешку</button>
+      </div>
+    </div>
+    <div class="ctl ctl-actions">
+      <label class="switch"><input type="checkbox" id="revealAll"> Показать все ответы</label>
+      <button type="button" class="ghost" id="shuffleBtn">Перемешать заново</button>
+      <button type="button" class="ghost danger" id="resetBtn">Сбросить ответы</button>
+    </div>
+  </div>
+</section>
+
+<div class="statbar">
+  <div class="wrap statbar-in">
+    <div class="prog" id="prog" role="progressbar" aria-label="Прогресс" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <span class="p-ok" id="pOk"></span><span class="p-bad" id="pBad"></span><span class="p-rev" id="pRev"></span>
+    </div>
+    <div class="counts" aria-live="polite">
+      <span>Отвечено <b id="sAns">0</b>/<b id="sTot">0</b></span>
+      <span><i class="dot ok"></i>верно <b id="sOk">0</b></span>
+      <span><i class="dot bad"></i>ошибки <b id="sBad">0</b></span>
+      <span><i class="dot rev"></i>подсмотрено <b id="sRev">0</b></span>
+      <a href="#results">Итоги ↓</a>
+    </div>
+  </div>
+</div>
+
+<main class="wrap" id="quiz"></main>
+
+<section class="wrap results" id="results" aria-label="Итоги">
+  <div class="results-box">
+    <h2>Итоги</h2>
+    <p class="summary" id="summary"></p>
+    <p class="advice" id="advice"></p>
+    <div class="trows" id="trows"></div>
+  </div>
+</section>
+
+<footer class="wrap">Ответы и прогресс сохраняются только в этом браузере. Нажмите на тему в итогах, чтобы перейти к ней. ¡Mucha suerte!</footer>
+
+<script>
+/* ===================== ТЕМЫ ===================== */
+const TOPICS = [];
+// Словарик: 'испанское — русское; …'
+const G = s => '<div class="gl">' + s.split(';').map(p => {
+  const [es, ru] = p.split(' — ').map(x => x.trim());
+  return '<span><b>' + es + '</b> — ' + ru + '</span>';
+}).join('') + '</div>';
+const T = (id, lvl, name, words, note) => TOPICS.push({id, lvl, name, rule: (note ? '<p class="gl-note">' + note + '</p>' : '') + G(words)});
+
+// ---------- A1 ----------
+T('saludos','A1','Приветствия и вежливость',
+  'hola — привет; buenos días — доброе утро, добрый день; buenas tardes — добрый день (после обеда); buenas noches — добрый вечер, спокойной ночи; adiós — до свидания; hasta luego — пока, до встречи; hasta mañana — до завтра; por favor — пожалуйста (в просьбе); gracias — спасибо; de nada — не за что; perdón, perdone — извините; lo siento — мне жаль, простите; encantado / encantada — очень приятно; ¿qué tal? — как дела?');
+T('familia','A1','Семья',
+  'el padre — отец; la madre — мать; los padres — родители; el hermano / la hermana — брат / сестра; el hijo / la hija — сын / дочь; el abuelo / la abuela — дедушка / бабушка; el nieto / la nieta — внук / внучка; el tío / la tía — дядя / тётя; el primo / la prima — двоюродный брат / сестра; el sobrino / la sobrina — племянник / племянница; el marido, el esposo — муж; la mujer, la esposa — жена; el suegro / la suegra — свёкор, тесть / свекровь, тёща',
+  'Мужской род множественного числа объединяет оба пола: <i>los hermanos</i> — «братья и сёстры», <i>los padres</i> — «родители».');
+T('numeros','A1','Числа, дни недели, месяцы',
+  'uno, dos, tres — 1, 2, 3; once, doce, trece — 11, 12, 13; quince — 15; dieciséis — 16; veinte — 20; veintiuno — 21; treinta y uno — 31; cien — 100; ciento uno — 101; quinientos — 500; mil — 1000; lunes, martes, miércoles — пн, вт, ср; jueves, viernes — чт, пт; sábado, domingo — сб, вс; enero … diciembre — январь … декабрь; el fin de semana — выходные; hoy / mañana / ayer — сегодня / завтра / вчера',
+  'Дни недели и месяцы пишутся со строчной буквы.');
+T('ropa','A1','Одежда и цвета',
+  'la camisa — рубашка; la camiseta — футболка; los pantalones — брюки; la falda — юбка; el vestido — платье; el abrigo — пальто; la chaqueta — куртка, пиджак; el jersey — свитер; los zapatos — туфли, обувь; las zapatillas — кроссовки, тапочки; los calcetines — носки; los guantes — перчатки; el sombrero — шляпа; rojo — красный; azul — синий; amarillo — жёлтый; verde — зелёный; negro — чёрный; blanco — белый; gris — серый; marrón — коричневый; morado — фиолетовый; naranja — оранжевый');
+T('comida','A1','Еда и напитки',
+  'el pan — хлеб; la leche — молоко; el queso — сыр; el huevo — яйцо; la carne — мясо; el pollo — курица; el pescado — рыба (еда); el arroz — рис; la patata — картофель; la zanahoria — морковь; la cebolla — лук; la manzana — яблоко; la naranja — апельсин; la fresa — клубника; el agua — вода; el zumo — сок; el desayuno — завтрак; la comida — обед, еда; la cena — ужин; el postre — десерт');
+T('casa','A1','Дом и мебель',
+  'la casa — дом; el piso — квартира (Испания), этаж; la cocina — кухня, плита; el dormitorio — спальня; el salón — гостиная; el baño — ванная, туалет; la ventana — окно; la puerta — дверь; el suelo — пол; la mesa — стол; la silla — стул; el sillón — кресло; el sofá — диван; la cama — кровать; el armario — шкаф; la estantería — стеллаж, полка; la nevera — холодильник; la lavadora — стиральная машина; el ascensor — лифт');
+T('ciudad','A1','Город',
+  'la calle — улица; la plaza — площадь; el barrio — район; la tienda — магазин; el supermercado — супермаркет; la farmacia — аптека; el banco — банк, скамейка; la biblioteca — библиотека; la librería — книжный магазин; la estación — вокзал, станция; la parada — остановка; el ayuntamiento — мэрия; el hospital — больница; el museo — музей; el parque — парк; a la derecha / a la izquierda — справа / слева; todo recto — прямо; cerca / lejos — близко / далеко');
+T('cuerpo','A1','Тело и внешность',
+  'la cabeza — голова; el pelo — волосы; la cara — лицо; los ojos — глаза; la nariz — нос; la boca — рот; los dientes — зубы; la oreja — ухо; el cuello — шея; el brazo — рука (от плеча); la mano — кисть руки; el dedo — палец; la pierna — нога; el pie — ступня; la rodilla — колено; la espalda — спина; alto / bajo — высокий / невысокий; delgado / gordo — худой / толстый; rubio / moreno — светловолосый / темноволосый; pelirrojo — рыжий');
+T('profesiones','A1','Профессии',
+  'el médico / la médica — врач; el enfermero / la enfermera — медбрат / медсестра; el profesor / la profesora — учитель, преподаватель; el camarero / la camarera — официант(ка); el cocinero — повар; el abogado — юрист, адвокат; el ingeniero — инженер; el policía — полицейский; el bombero — пожарный; el fontanero — сантехник; el dependiente — продавец; el peluquero — парикмахер; el / la periodista — журналист(ка); el / la estudiante — студент(ка); el / la cantante — певец, певица',
+  'Слова на <i>-ista</i> и <i>-ante</i> не меняются по роду, меняется только артикль: <i>el / la periodista, el / la cantante</i>.');
+T('tiempo','A1','Погода и времена года',
+  'hace sol — солнечно; hace calor — жарко; hace frío — холодно; hace viento — ветрено; hace buen / mal tiempo — хорошая / плохая погода; llueve — идёт дождь; nieva — идёт снег; está nublado — облачно; la lluvia — дождь; la nieve — снег; la nube — облако; la niebla — туман; la tormenta — гроза, буря; la primavera — весна; el verano — лето; el otoño — осень; el invierno — зима; el grado — градус');
+T('rutina','A1','Распорядок дня',
+  'despertarse — просыпаться; levantarse — вставать; ducharse — принимать душ; lavarse los dientes — чистить зубы; peinarse — причёсываться; vestirse — одеваться; desayunar — завтракать; ir al trabajo — идти / ехать на работу; comer — обедать (Испания); volver a casa — возвращаться домой; cenar — ужинать; acostarse — ложиться спать; dormirse — засыпать; dormir — спать');
+T('frecuencia','A1','Время и частотность',
+  'siempre — всегда; casi siempre — почти всегда; normalmente — обычно; a menudo — часто; a veces — иногда; casi nunca — почти никогда; nunca — никогда; todos los días — каждый день; una vez a la semana — раз в неделю; dos veces al mes — два раза в месяц; por la mañana — утром; por la tarde — днём, ранним вечером; por la noche — вечером, ночью; temprano — рано; tarde — поздно; ahora — сейчас; luego, después — потом');
+
+// ---------- A2 ----------
+T('viajes','A2','Путешествия и транспорт',
+  'el viaje — поездка, путешествие; viajar — путешествовать; el billete — билет на транспорт (Испания); de ida y vuelta — туда и обратно; solo de ida — только туда; la salida / la llegada — отправление / прибытие; el equipaje — багаж; la maleta — чемодан; hacer la maleta — собирать чемодан; el pasaporte — паспорт; el vuelo — рейс, полёт; facturar — сдавать багаж; la tarjeta de embarque — посадочный талон; el andén — платформа; la taquilla — касса; perder el tren — опоздать на поезд; el alojamiento — жильё');
+T('compras','A2','Покупки и деньги',
+  'ir de compras — ходить по магазинам; hacer la compra — закупаться продуктами; el precio — цена; ¿cuánto cuesta? — сколько стоит?; caro / barato — дорогой / дешёвый; las rebajas — распродажа; el descuento — скидка; la talla — размер одежды; el número — размер обуви; probarse — примерять; el probador — примерочная; el escaparate — витрина; pagar en efectivo — платить наличными; pagar con tarjeta — платить картой; el cambio, la vuelta — сдача; el ticket — чек; devolver — вернуть');
+T('salud','A2','Здоровье',
+  'la salud — здоровье; estar enfermo — болеть; me duele… — у меня болит…; el dolor — боль; tener fiebre — иметь температуру; la tos — кашель; estar resfriado — быть простуженным; la gripe — грипп; la garganta — горло; la cita — запись (к врачу), встреча; la receta — рецепт; la pastilla — таблетка; el jarabe — сироп; la herida — рана; romperse el brazo — сломать руку; ¡Que te mejores! — Выздоравливай!; sano — здоровый');
+T('trabajo','A2','Работа и учёба',
+  'la empresa — компания; la oficina — офис; el jefe / la jefa — начальник / начальница; el compañero — коллега, одноклассник; el sueldo — зарплата; el horario — график; la reunión — совещание; buscar trabajo — искать работу; la entrevista — собеседование, интервью; el currículum — резюме; jubilarse — выйти на пенсию; estar parado — быть безработным (Испания); la asignatura — учебный предмет; aprobar / suspender — сдать / провалить экзамен; los deberes — домашнее задание; la nota — оценка');
+T('ocio','A2','Свободное время и хобби',
+  'el tiempo libre — свободное время; quedar con amigos — встречаться с друзьями; salir — выходить, гулять (развлекаться); dar un paseo — прогуляться; ir al cine — ходить в кино; la película — фильм; la serie — сериал; hacer deporte — заниматься спортом; jugar al fútbol — играть в футбол; tocar la guitarra — играть на гитаре; bailar — танцевать; pintar — рисовать красками; dibujar — рисовать карандашом; el cuadro — картина; la entrada — билет (в кино, на концерт); el aficionado — болельщик, любитель',
+  'Играть в игру или спорт — <i>jugar</i>, играть на инструменте — <i>tocar</i>.');
+T('caracter','A2','Характер и чувства',
+  'simpático / antipático — приятный / неприятный; amable — любезный; tímido — застенчивый; trabajador — трудолюбивый; vago — ленивый; divertido — весёлый, забавный; aburrido — скучный; serio — серьёзный; tranquilo — спокойный; nervioso — нервный; generoso — щедрый; tacaño — жадный; contento — довольный; triste — грустный; enfadado — сердитый; cansado — уставший; ser listo — быть умным; estar listo — быть готовым',
+  'Некоторые прилагательные меняют смысл с <i>ser</i> и <i>estar</i>: <i>ser aburrido</i> — быть скучным, <i>estar aburrido</i> — скучать.');
+T('restaurante','A2','В ресторане',
+  'la carta — меню; el menú del día — комплексный обед; de primero / de segundo — на первое / на второе; el postre — десерт; la bebida — напиток; la cuenta — счёт; la propina — чаевые; reservar una mesa — забронировать столик; pedir — заказывать; el plato — блюдо, тарелка; el vaso — стакан; la copa — бокал; el tenedor — вилка; el cuchillo — нож; la cuchara — ложка; la servilleta — салфетка; ¡Que aproveche! — Приятного аппетита!; estar rico — быть вкусным');
+T('naturaleza','A2','Природа и животные',
+  'el campo — сельская местность, поле; la montaña — гора; el río — река; el lago — озеро; el mar — море; la orilla — берег; el bosque — лес; la isla — остров; el árbol — дерево; la flor — цветок; el perro — собака; el gato — кот; el caballo — лошадь; la vaca — корова; el cerdo — свинья; la cabra — коза; el pájaro — птица; el pez — рыба (живая); el oso — медведь; el lobo — волк');
+T('tecnologia','A2','Технологии и связь',
+  'el móvil — мобильный (Испания); el celular — мобильный (Лат. Америка); el ordenador — компьютер (Испания); la computadora — компьютер (Лат. Америка); el portátil — ноутбук; la pantalla — экран; el teclado — клавиатура; el ratón — мышь; la contraseña — пароль; el usuario — пользователь, логин; el correo electrónico — электронная почта; enviar, mandar — отправлять; descargar — скачивать; cargar — заряжать; la batería — аккумулятор; las redes sociales — соцсети; el mensaje — сообщение; colgar — повесить трубку');
+T('falsos-amigos','A2','Ложные друзья переводчика',
+  'la familia — семья; el apellido — фамилия; la carta — письмо, меню; el mapa — карта; el éxito — успех; la salida — выход; constipado — простуженный; estreñido — страдающий запором; embarazada — беременная; avergonzado — смущённый; el compromiso — обязательство, договорённость; la carpeta — папка; la alfombra — ковёр',
+  'Эти слова похожи на русские (или английские), но значат совсем другое.');
+
+/* ===================== ВОПРОСЫ =====================
+   C(тема, вопрос, перевод, [ПРАВИЛЬНЫЙ, неверный, …], объяснение) — выбор ответа
+   W(тема, вопрос, перевод, [допустимые ответы], объяснение) — ввод ответа
+   Варианты перемешиваются автоматически. */
+const QUESTIONS = [];
+const C = (t,q,tr,o,ex) => QUESTIONS.push({t, type:'choice', q, tr, o, ex});
+const W = (t,q,tr,a,ex) => QUESTIONS.push({t, type:'input', q, tr, a, ex});
+const ODD = 'Найдите лишнее слово:';
+
+// --- Приветствия ---
+C('saludos','Сейчас 16:00. Как поздороваться?','',['Buenas tardes','Buenos días','Buenas noches'],
+  'В Испании <i>buenos días</i> говорят до обеда (примерно до 14:00), <b>buenas tardes</b> — после обеда и до темноты, <i>buenas noches</i> — вечером и перед сном.');
+C('saludos','—Muchas gracias. —___.','— Большое спасибо. — Не за что.',['De nada','Por favor','Lo siento'],
+  'В ответ на «спасибо» говорят <b>de nada</b> (букв. «ни за что»). <i>Por favor</i> — «пожалуйста» только в просьбе.');
+C('saludos','Вы случайно толкнули человека на улице. Что сказать?','',['Perdón','De nada','Encantado'],
+  '<b>Perdón</b> (или <i>perdone</i>, <i>disculpe</i>) — «извините». <i>Encantado</i> — «очень приятно» при знакомстве.');
+C('saludos','Вас познакомили с новым коллегой. Вы — женщина. Что вы скажете?','',['Encantada','Encantado','Hasta luego'],
+  '<i>Encantado / encantada</i> согласуется с полом говорящего: женщина говорит <b>encantada</b>, мужчина — <i>encantado</i>. Можно также сказать <i>mucho gusto</i>.');
+C('saludos','Что значит «¿Qué tal?»','',['Как дела?','Что это?','Сколько стоит?'],
+  '<b>¿Qué tal?</b> — неформальное «как дела?». Ответ: <i>Bien, gracias, ¿y tú?</i> «Что это?» — <i>¿Qué es esto?</i>, «Сколько стоит?» — <i>¿Cuánto cuesta?</i>');
+W('saludos','Впишите по-испански: «до завтра»','',['hasta mañana'],
+  '<b>Hasta mañana</b> — «до завтра». Так же: <i>hasta luego</i> (пока), <i>hasta pronto</i> (до скорого), <i>hasta el lunes</i> (до понедельника). Буква <i>h</i> не читается.');
+
+// --- Семья ---
+C('familia','El hermano de mi madre es mi ___.','Брат моей мамы — мой дядя.',['tío','primo','sobrino'],
+  '<b>el tío</b> — дядя, <i>la tía</i> — тётя. Кстати, в Испании в разговорной речи <i>tío / tía</i> — ещё и «чувак», «подруга».');
+C('familia','Los hijos de mis tíos son mis ___.','Дети моих дяди и тёти — мои двоюродные братья и сёстры.',['primos','sobrinos','nietos'],
+  '<b>el primo / la prima</b> — двоюродный брат / сестра. <i>Sobrinos</i> — племянники, <i>nietos</i> — внуки.');
+C('familia','Что значит «los padres»?','',['родители','родственники','дедушки'],
+  '<b>Los padres</b> — «родители» (и папа, и мама). Так же <i>los hermanos</i> — «братья и сёстры», <i>los hijos</i> — «дети». «Родственники» — <i>los parientes</i> или <i>los familiares</i>.');
+C('familia','Soy la hija de tu hermana. Soy tu ___.','Я дочь твоей сестры. Я твоя племянница.',['sobrina','nieta','prima'],
+  '<b>la sobrina</b> — племянница, <i>el sobrino</i> — племянник.');
+C('familia','Как по-испански «муж»?','',['el marido','el hombre','el novio'],
+  '<b>el marido</b> (или <i>el esposo</i>) — муж. <i>El hombre</i> — мужчина, человек; <i>el novio</i> — парень, жених. «Жена» — <i>la mujer</i> или <i>la esposa</i>.');
+C('familia',ODD,'',['la vecina','la abuela','la nieta','la suegra'],
+  '<b>La vecina</b> — соседка, она не родственница. Остальные: бабушка, внучка, свекровь (тёща).');
+W('familia','Впишите по-испански: «внук»','',['el nieto','nieto'],
+  '<b>el nieto</b> — внук, <i>la nieta</i> — внучка, <i>los nietos</i> — внуки.');
+
+// --- Числа и даты ---
+C('numeros','Как по-испански 15?','',['quince','cinco','cincuenta'],
+  '<b>quince</b> — 15, <i>cinco</i> — 5, <i>cincuenta</i> — 50. Числа 11–15 особые: <i>once, doce, trece, catorce, quince</i>; с 16 — <i>dieciséis, diecisiete…</i>');
+C('numeros','Как правильно написать 21?','',['veintiuno','veinte y uno','veintuno'],
+  'Числа 21–29 пишутся слитно: <b>veintiuno</b>, veintidós, veintitrés… А начиная с 31 — раздельно: <i>treinta y uno</i>.');
+C('numeros','¿Qué día va después del martes?','Какой день идёт после вторника?',['el miércoles','el jueves','el lunes'],
+  '<i>lunes</i> — пн, <i>martes</i> — вт, <b>miércoles</b> — ср, <i>jueves</i> — чт, <i>viernes</i> — пт, <i>sábado</i> — сб, <i>domingo</i> — вс.');
+C('numeros',ODD,'',['marzo','lunes','sábado','viernes'],
+  '<b>Marzo</b> — март (месяц), остальные — дни недели.');
+C('numeros','Как по-испански 500?','',['quinientos','cincocientos','cinco cientos'],
+  'Особые сотни: <b>quinientos</b> (500), <i>setecientos</i> (700), <i>novecientos</i> (900). Остальные образуются обычно: <i>doscientos, trescientos, cuatrocientos…</i>');
+C('numeros','Mi cumpleaños es el 7 de ___. (июль)','Мой день рождения 7 июля.',['julio','junio','enero'],
+  '<b>julio</b> — июль, <i>junio</i> — июнь. Их легко перепутать! Подсказка: ju<b>n</b>io — ию<b>н</b>ь, ju<b>l</b>io — ию<b>л</b>ь.');
+W('numeros','Впишите словом: 100','',['cien'],
+  'Ровно 100 — <b>cien</b>. С единицами — <i>ciento</i>: <i>ciento uno</i> (101), <i>ciento veinte</i> (120).');
+
+// --- Одежда и цвета ---
+C('ropa','Как по-испански «футболка»?','',['la camiseta','la camisa','la chaqueta'],
+  '<b>la camiseta</b> — футболка, <i>la camisa</i> — рубашка (с пуговицами и воротником), <i>la chaqueta</i> — куртка или пиджак.');
+C('ropa','En invierno llevo un ___ porque hace frío.','Зимой я ношу пальто, потому что холодно.',['abrigo','bañador','vestido'],
+  '<b>el abrigo</b> — пальто. <i>El bañador</i> — купальник / плавки, <i>el vestido</i> — платье.');
+C('ropa','Что значит «gris»?','',['серый','зелёный','коричневый'],
+  '<b>gris</b> — серый. Зелёный — <i>verde</i>, коричневый — <i>marrón</i>.');
+C('ropa','Если смешать azul и amarillo, получится…','',['verde','morado','naranja'],
+  'Синий (<i>azul</i>) + жёлтый (<i>amarillo</i>) = зелёный, <b>verde</b>. <i>Morado</i> — фиолетовый, <i>naranja</i> — оранжевый.');
+C('ropa',ODD,'',['la mesa','la falda','el jersey','los calcetines'],
+  '<b>La mesa</b> — стол, это мебель. Остальное — одежда: юбка, свитер, носки.');
+C('ropa','En los pies llevo ___ y zapatos.','На ногах у меня носки и туфли.',['calcetines','guantes','sombrero'],
+  '<b>los calcetines</b> — носки. <i>Los guantes</i> — перчатки (на руках), <i>el sombrero</i> — шляпа.');
+W('ropa','Впишите по-испански: «чёрный»','',['negro'],
+  '<b>negro</b> — чёрный (<i>negra, negros, negras</i>). Белый — <i>blanco</i>.');
+
+// --- Еда ---
+C('comida','Как по-испански «рыба» (на тарелке)?','',['el pescado','el pez','la pesca'],
+  'Рыба как еда — <b>el pescado</b>. Живая рыба в воде — <i>el pez</i> (мн. ч. <i>peces</i>). <i>La pesca</i> — рыбалка.');
+C('comida','Что значит «el huevo»?','',['яйцо','мясо','сыр'],
+  '<b>el huevo</b> — яйцо (<i>h</i> не читается: [уэ́бо]). Мясо — <i>la carne</i>, сыр — <i>el queso</i>.');
+C('comida','Por la mañana tomo el ___: café con tostadas.','Утром я завтракаю: кофе с тостами.',['desayuno','postre','cena'],
+  '<b>el desayuno</b> — завтрак (глагол <i>desayunar</i>). <i>El postre</i> — десерт, <i>la cena</i> — ужин.');
+C('comida',ODD,'',['el pollo','la manzana','la fresa','la naranja'],
+  '<b>El pollo</b> — курица (мясо). Остальное — фрукты: яблоко, клубника, апельсин.');
+C('comida','Как по-испански «картофель»?','',['la patata','la zanahoria','la cebolla'],
+  '<b>la patata</b> — картофель (в Латинской Америке — <i>la papa</i>). <i>La zanahoria</i> — морковь, <i>la cebolla</i> — лук.');
+C('comida','Un vaso de ___ de naranja, por favor.','Стакан апельсинового сока, пожалуйста.',['zumo','leche','pan'],
+  '<b>el zumo</b> — сок (в Латинской Америке — <i>el jugo</i>). <i>Zumo de naranja</i> — апельсиновый сок.');
+W('comida','Впишите по-испански: «хлеб»','',['el pan','pan'],
+  '<b>el pan</b> — хлеб. <i>La panadería</i> — булочная.');
+
+// --- Дом ---
+C('casa','Por la noche duermo en la ___.','Ночью я сплю в кровати.',['cama','mesa','silla'],
+  '<b>la cama</b> — кровать. Комната, где спят, — <i>el dormitorio</i>.');
+C('casa','Что значит «la nevera»?','',['холодильник','плита','посудомойка'],
+  '<b>la nevera</b> (или <i>el frigorífico</i>) — холодильник. Плита — <i>la cocina</i>, посудомойка — <i>el lavavajillas</i>.');
+C('casa','Как в Испании чаще всего называют квартиру?','',['el piso','el suelo','el techo'],
+  'В Испании квартира — <b>el piso</b> (в Латинской Америке — <i>el departamento</i> или <i>el apartamento</i>). <i>Piso</i> значит также «этаж»: <i>vivo en el tercer piso</i>. <i>El suelo</i> — пол, <i>el techo</i> — потолок, крыша.');
+C('casa','Как по-испански «кресло»?','',['el sillón','la silla','el sofá'],
+  '<b>el sillón</b> — кресло (суффикс <i>-ón</i> = «большой»: большой стул). <i>La silla</i> — стул, <i>el sofá</i> — диван.');
+C('casa','Cocino en la ___.','Я готовлю на кухне.',['cocina','cocinera','comida'],
+  '<b>la cocina</b> — кухня (и плита). <i>La cocinera</i> — повариха, <i>la comida</i> — еда, обед.');
+C('casa',ODD,'',['el ascensor','el sofá','la silla','la mesa'],
+  '<b>El ascensor</b> — лифт. Остальное — мебель: диван, стул, стол.');
+W('casa','Впишите по-испански: «дверь»','',['la puerta','puerta'],
+  '<b>la puerta</b> — дверь. <i>Abrir / cerrar la puerta</i> — открыть / закрыть дверь.');
+
+// --- Город ---
+C('ciudad','Что значит «la librería»?','',['книжный магазин','библиотека','книжная полка'],
+  'Ловушка! <b>La librería</b> — книжный магазин, а библиотека — <i>la biblioteca</i>.');
+C('ciudad','Espero el autobús en la ___.','Я жду автобус на остановке.',['parada','estación','calle'],
+  '<b>la parada</b> (de autobús) — остановка. <i>La estación</i> — вокзал или станция (поезда, метро).');
+C('ciudad','Siga ___ y en la plaza gire a la derecha.','Идите прямо и на площади поверните направо.',['todo recto','cerca','lejos'],
+  '<b>todo recto</b> — прямо. <i>A la derecha</i> — направо, <i>a la izquierda</i> — налево; <i>cerca</i> — близко, <i>lejos</i> — далеко.');
+C('ciudad','Как по-испански «аптека»?','',['la farmacia','la droguería','el ambulatorio'],
+  '<b>la farmacia</b> — аптека. <i>La droguería</i> в Испании — магазин бытовой химии, а не аптека! <i>El ambulatorio</i> — поликлиника.');
+C('ciudad','Me siento en un ___ del parque.','Я сажусь на скамейку в парке.',['banco','barco','balcón'],
+  '<b>el banco</b> — и «банк», и «скамейка», значение понятно из контекста. <i>El barco</i> — корабль, <i>el balcón</i> — балкон.');
+C('ciudad','Найдите антоним к слову «cerca»:','',['lejos','al lado','delante'],
+  '<i>cerca</i> — близко, <b>lejos</b> — далеко. <i>Al lado</i> — рядом, <i>delante</i> — впереди.');
+W('ciudad','Впишите по-испански: «улица»','',['la calle','calle'],
+  '<b>la calle</b> — улица (<i>ll</i> читается как [й]: [ка́йе]).');
+
+// --- Тело ---
+C('cuerpo','Escribo con la ___ derecha.','Я пишу правой рукой.',['mano','pierna','espalda'],
+  '<b>la mano</b> — кисть руки (женский род, хотя на <i>-o</i>!). <i>El brazo</i> — рука от плеча, <i>la pierna</i> — нога, <i>la espalda</i> — спина.');
+C('cuerpo','Что значит «el pelo»?','',['волосы','кожа','шея'],
+  '<b>el pelo</b> — волосы (обычно в единственном числе: <i>tengo el pelo largo</i>). Кожа — <i>la piel</i>, шея — <i>el cuello</i>.');
+C('cuerpo','Как по-испански «ступня»?','',['el pie','la pierna','la rodilla'],
+  'Русскому «нога» соответствуют два слова: <b>el pie</b> — ступня (<i>ir a pie</i> — идти пешком) и <i>la pierna</i> — нога целиком. <i>La rodilla</i> — колено.');
+C('cuerpo','Mi hermana tiene el pelo ___. (светлые)','У моей сестры светлые волосы.',['rubio','moreno','rojo'],
+  '<b>rubio</b> — светлый (о волосах), блондин. <i>Moreno</i> — темноволосый или смуглый. Рыжий — <i>pelirrojo</i>, а не <i>rojo</i>.');
+C('cuerpo','Найдите антоним к слову «alto»:','',['bajo','delgado','gordo'],
+  '<i>alto</i> — высокий, <b>bajo</b> — невысокий. <i>Delgado</i> — худой, <i>gordo</i> — толстый.');
+C('cuerpo','Что значит «la oreja»?','',['ухо','глаз','щека'],
+  '<b>la oreja</b> — ухо (то, что снаружи); слух и внутреннее ухо — <i>el oído</i>. Глаз — <i>el ojo</i>, щека — <i>la mejilla</i>.');
+W('cuerpo','Впишите по-испански: «голова»','',['la cabeza','cabeza'],
+  '<b>la cabeza</b> — голова. <i>Me duele la cabeza</i> — у меня болит голова.');
+
+// --- Профессии ---
+C('profesiones','Trabaja en un restaurante y sirve la comida. Es ___.','Он работает в ресторане и подаёт еду. Он официант.',['camarero','cocinero','dependiente'],
+  '<b>el camarero</b> — официант (в Латинской Америке — <i>el mesero</i>). <i>El cocinero</i> — повар, <i>el dependiente</i> — продавец в магазине.');
+C('profesiones','Apaga incendios. Es ___.','Он тушит пожары. Он пожарный.',['bombero','policía','fontanero'],
+  '<b>el bombero</b> — пожарный. <i>El policía</i> — полицейский, <i>el fontanero</i> — сантехник.');
+C('profesiones','Как по-испански «журналистка»?','',['la periodista','la periodisto','la periodistera'],
+  'Слова на <b>-ista</b> не меняются по роду, меняется только артикль: <i>el / la periodista, el / la taxista, el / la dentista</i>.');
+C('profesiones','Что значит «el abogado»?','',['юрист, адвокат','бухгалтер','врач'],
+  '<b>el abogado</b> — юрист, адвокат. Бухгалтер — <i>el contable</i>, врач — <i>el médico</i>.');
+C('profesiones','Mi madre es ___: trabaja en un hospital y ayuda a los médicos.','Моя мама — медсестра: работает в больнице и помогает врачам.',['enfermera','enferma','azafata'],
+  '<b>la enfermera</b> — медсестра. Не путайте с <i>enferma</i> — «больная»! <i>La azafata</i> — стюардесса.');
+C('profesiones',ODD,'',['el hospital','el peluquero','el ingeniero','el cantante'],
+  '<b>El hospital</b> — больница, это место, а не профессия. Остальные: парикмахер, инженер, певец.');
+W('profesiones','Впишите по-испански: «учитель» (м. р.)','',['el profesor','profesor','el maestro','maestro'],
+  '<b>el profesor</b> — учитель, преподаватель (<i>la profesora</i> — учительница). Учитель начальной школы — также <i>el maestro / la maestra</i>.');
+
+// --- Погода ---
+C('tiempo','Hoy ___ mucho frío.','Сегодня очень холодно.',['hace','está','es'],
+  'О погоде и температуре говорят с <b>hacer</b>: <i>hace frío, hace calor, hace sol, hace viento</i>. Но: <i>está nublado</i> — облачно.');
+C('tiempo','Что значит «llueve»?','',['идёт дождь','идёт снег','дует ветер'],
+  '<b>llueve</b> — идёт дождь (глагол <i>llover</i>), <i>nieva</i> — идёт снег (<i>nevar</i>). Существительные: <i>la lluvia, la nieve</i>.');
+C('tiempo','Как по-испански «лето»?','',['el verano','la primavera','el invierno'],
+  '<b>el verano</b> — лето, <i>la primavera</i> — весна, <i>el otoño</i> — осень, <i>el invierno</i> — зима.');
+C('tiempo','Hay truenos y relámpagos: es una ___.','Гремит гром и сверкают молнии: это гроза.',['tormenta','nube','niebla'],
+  '<b>la tormenta</b> — гроза, буря. <i>La nube</i> — облако, <i>la niebla</i> — туман.');
+C('tiempo',ODD,'',['la playa','la nieve','la lluvia','el viento'],
+  '<b>La playa</b> — пляж. Остальное — погодные явления: снег, дождь, ветер.');
+W('tiempo','Впишите по-испански: «зима»','',['el invierno','invierno'],
+  '<b>el invierno</b> — зима. <i>En invierno</i> — зимой.');
+
+// --- Распорядок дня ---
+C('rutina','Después de despertarme, me ___ de la cama.','Проснувшись, я встаю с кровати.',['levanto','acuesto','visto'],
+  '<b>levantarse</b> — вставать. <i>Despertarse</i> — просыпаться, <i>acostarse</i> — ложиться спать, <i>vestirse</i> — одеваться.');
+C('rutina','Что значит «cenar»?','',['ужинать','обедать','завтракать'],
+  '<b>cenar</b> — ужинать (<i>la cena</i> — ужин). Завтракать — <i>desayunar</i>, обедать — <i>comer</i> (в Испании) или <i>almorzar</i>.');
+C('rutina','Antes de dormir me lavo los ___.','Перед сном я чищу зубы.',['dientes','dedos','ojos'],
+  '<b>lavarse los dientes</b> — чистить зубы (букв. «мыть зубы»). Также <i>cepillarse los dientes</i>.');
+C('rutina','Как по-испански «ложиться спать»?','',['acostarse','dormirse','levantarse'],
+  '<b>acostarse</b> — ложиться спать (o → ue: <i>me acuesto</i>). <i>Dormirse</i> — засыпать, <i>levantarse</i> — вставать.');
+C('rutina',ODD,'',['la tarde','ducharse','vestirse','peinarse'],
+  '<b>La tarde</b> — время суток (вторая половина дня). Остальное — утренние действия: принять душ, одеться, причесаться.');
+W('rutina','Впишите инфинитив: «завтракать»','',['desayunar'],
+  '<b>desayunar</b> — завтракать. Буквально «прервать пост»: <i>des-</i> + <i>ayunar</i> («поститься»).');
+
+// --- Частотность ---
+C('frecuencia','Voy al gimnasio ___: los lunes y los jueves.','Я хожу в спортзал два раза в неделю: по понедельникам и четвергам.',['dos veces a la semana','todos los días','nunca'],
+  '<b>dos veces a la semana</b> — два раза в неделю (<i>una vez al mes</i> — раз в месяц). <i>Vez</i> → мн. ч. <i>veces</i> (z → c).');
+C('frecuencia','Что значит «a veces»?','',['иногда','всегда','часто'],
+  '<b>a veces</b> — иногда. Часто — <i>a menudo</i>, всегда — <i>siempre</i>.');
+C('frecuencia','Como pescado ___: no me gusta nada.','Я почти никогда не ем рыбу: она мне совсем не нравится.',['casi nunca','a menudo','siempre'],
+  '<b>casi nunca</b> — почти никогда. Подсказка в контексте: если не нравится, то едим редко.');
+C('frecuencia','Me levanto ___, a las seis.','Я встаю рано, в шесть.',['temprano','tarde','luego'],
+  '<b>temprano</b> — рано. <i>Tarde</i> — поздно (а <i>la tarde</i> — вторая половина дня), <i>luego</i> — потом. В Испании «рано» также <i>pronto</i>.');
+C('frecuencia','Как по-испански «вечером» (около 22:00)?','',['por la noche','por la tarde','por la mañana'],
+  'В Испании <i>la tarde</i> длится примерно до 20–21 часа, потом начинается <b>la noche</b>. Поэтому в 22:00 — <i>por la noche</i>.');
+W('frecuencia','Впишите по-испански: «всегда»','',['siempre'],
+  '<b>siempre</b> — всегда. Противоположность — <i>nunca</i> (никогда).');
+
+// ================= A2 =================
+// --- Путешествия ---
+C('viajes','Quiero un billete de ida y ___ a Sevilla.','Мне нужен билет в Севилью туда и обратно.',['vuelta','salida','llegada'],
+  '<b>de ida y vuelta</b> — туда и обратно; <i>solo de ida</i> — только туда. <i>La salida</i> — отправление, <i>la llegada</i> — прибытие.');
+C('viajes','En el aeropuerto tengo que ___ la maleta.','В аэропорту мне нужно сдать чемодан в багаж.',['facturar','fracturar','factura'],
+  '<b>facturar</b> — сдавать багаж (<i>la facturación</i> — регистрация багажа). <i>Fracturar</i> — сломать (кость)! <i>La factura</i> — счёт-фактура.');
+C('viajes','Что значит «el andén»?','',['платформа','касса','зал ожидания'],
+  '<b>el andén</b> — платформа. Касса — <i>la taquilla</i>, зал ожидания — <i>la sala de espera</i>.');
+C('viajes','Me levanté tarde y ___ el tren.','Я поздно встал и опоздал на поезд.',['perdí','falté','olvidé'],
+  '«Опоздать на поезд / самолёт» — <b>perder</b> el tren / el avión (букв. «потерять»). <i>Faltar</i> — отсутствовать, <i>olvidar</i> — забыть.');
+C('viajes','Как по-испански «рейс» самолёта?','',['el vuelo','la carrera','el viaje'],
+  '<b>el vuelo</b> — рейс, полёт (<i>volar</i> — летать). <i>El viaje</i> — поездка в целом, <i>la carrera</i> — забег, карьера.');
+C('viajes','Как сказать «собирать чемодан»?','',['hacer la maleta','coger la maleta','llevar la maleta'],
+  'Устойчивое выражение: <b>hacer la maleta</b>. Похожие: <i>hacer la cama</i> — заправлять кровать, <i>hacer la compra</i> — закупаться продуктами. <i>Llevar la maleta</i> — нести чемодан.');
+W('viajes','Впишите по-испански: «паспорт»','',['el pasaporte','pasaporte'],
+  '<b>el pasaporte</b> — паспорт. Удостоверение личности в Испании — <i>el DNI</i>.');
+
+// --- Покупки ---
+C('compras','¿Dónde está el ___? Quiero probarme esta camisa.','Где примерочная? Хочу примерить эту рубашку.',['probador','vestuario','escaparate'],
+  '<b>el probador</b> — примерочная (от <i>probarse</i> — примерять). <i>El vestuario</i> — раздевалка (в спортзале), <i>el escaparate</i> — витрина.');
+C('compras','—¿Qué ___ usa? —La 40.','— Какой размер вы носите? — Сороковой.',['talla','medida','manga'],
+  'Размер одежды — <b>la talla</b>, размер обуви — <i>el número</i>: <i>¿Qué número calza?</i> <i>La manga</i> — рукав.');
+C('compras','Este bolso cuesta 500 euros, es muy ___.','Эта сумка стоит 500 евро, она очень дорогая.',['caro','barato','rico'],
+  '<b>caro</b> — дорогой, <i>barato</i> — дешёвый. <i>Rico</i> — богатый или вкусный, но не «дорогой».');
+C('compras','Что значит «las rebajas»?','',['распродажа','скидочная карта','сдача'],
+  '<b>las rebajas</b> — сезонная распродажа (в Испании — в январе и июле). Скидка — <i>el descuento</i>, сдача — <i>el cambio</i> или <i>la vuelta</i>.');
+C('compras','¿Paga en efectivo o con ___?','Вы платите наличными или картой?',['tarjeta','billete','cuenta'],
+  '<b>pagar con tarjeta</b> — платить картой, <i>en efectivo</i> — наличными. <i>La cuenta</i> — счёт в ресторане, <i>el billete</i> — купюра или билет.');
+C('compras','Как сказать «ходить по магазинам» (шопинг)?','',['ir de compras','hacer la compra','ir de paseo'],
+  '<b>ir de compras</b> (или <i>ir de tiendas</i>) — шопинг. <i>Hacer la compra</i> — покупать продукты на неделю, <i>ir de paseo</i> — гулять.');
+W('compras','Впишите по-испански: «дешёвый»','',['barato'],
+  '<b>barato</b> — дешёвый (<i>barata, baratos, baratas</i>). Противоположность — <i>caro</i>.');
+
+// --- Здоровье ---
+C('salud','Tengo 39 grados, tengo ___.','У меня 39 — у меня температура.',['fiebre','calor','tos'],
+  '<b>tener fiebre</b> — иметь повышенную температуру. <i>Tener calor</i> — «мне жарко», <i>la tos</i> — кашель.');
+C('salud','Me ___ la cabeza.','У меня болит голова.',['duele','duelen','dolor'],
+  'Глагол <b>doler</b> работает как <i>gustar</i>: <i>me duele la cabeza</i> (ед. ч.), <i>me duelen los pies</i> (мн. ч.). <i>El dolor</i> — существительное «боль».');
+C('salud','El médico me da una ___ para comprar el medicamento en la farmacia.','Врач даёт мне рецепт, чтобы купить лекарство в аптеке.',['receta','cita','carta'],
+  '<b>la receta</b> — рецепт (и врачебный, и кулинарный). <i>La cita</i> — запись к врачу, встреча; <i>la carta</i> — письмо.');
+C('salud','Что значит «la tos»?','',['кашель','насморк','горло'],
+  '<b>la tos</b> — кашель (<i>toser</i> — кашлять). Горло — <i>la garganta</i>; насморк — <i>los mocos</i>.');
+C('salud','Ваш друг заболел. Что ему сказать?','',['¡Que te mejores!','¡Que aproveche!','¡Enhorabuena!'],
+  '<b>¡Que te mejores!</b> — «Выздоравливай!». <i>¡Que aproveche!</i> — «Приятного аппетита!», <i>¡Enhorabuena!</i> — «Поздравляю!».');
+C('salud','Me caí por la escalera y me ___ el brazo.','Я упал с лестницы и сломал руку.',['rompí','caí','quité'],
+  '<b>romperse</b> + часть тела — сломать: <i>me rompí el brazo</i>. Притяжательное местоимение не нужно: не <i>mi brazo</i>.');
+W('salud','Впишите по-испански: «таблетка»','',['la pastilla','pastilla','la píldora','píldora'],
+  '<b>la pastilla</b> — таблетка (также <i>la píldora</i>, <i>el comprimido</i>). Лекарство — <i>el medicamento</i>.');
+
+// --- Работа и учёба ---
+C('trabajo','Как по-испански «собеседование» при приёме на работу?','',['la entrevista','la reunión','la conversación'],
+  '<b>la entrevista</b> (de trabajo) — собеседование; также «интервью». <i>La reunión</i> — совещание, <i>la conversación</i> — разговор.');
+C('trabajo','Что значит «suspender un examen»?','',['провалить экзамен','отложить экзамен','сдать экзамен'],
+  'В Испании <b>suspender</b> — провалить экзамен, а <i>aprobar</i> — сдать. Отложить — <i>aplazar</i>.');
+C('trabajo','Mi ___ es muy simpático: nunca se enfada.','Мой начальник очень приятный: никогда не злится.',['jefe','sueldo','horario'],
+  '<b>el jefe</b> — начальник (<i>la jefa</i> — начальница). <i>El sueldo</i> — зарплата, <i>el horario</i> — график.');
+C('trabajo','Mi abuelo tiene 70 años y ya no trabaja: está ___.','Моему дедушке 70 лет, и он уже не работает: он на пенсии.',['jubilado','parado','cansado'],
+  '<b>jubilado</b> — пенсионер (<i>jubilarse</i> — выйти на пенсию, <i>la jubilación</i> — пенсия). <i>Parado</i> — безработный (в Испании).');
+C('trabajo','—¿Cuál es tu ___ favorita? —Las matemáticas.','— Какой твой любимый предмет? — Математика.',['asignatura','firma','sujeta'],
+  '<b>la asignatura</b> — учебный предмет (также <i>la materia</i>). <i>La firma</i> — подпись или фирма.');
+C('trabajo',ODD,'',['la playa','el sueldo','la oficina','la reunión'],
+  '<b>La playa</b> — пляж. Остальное связано с работой: зарплата, офис, совещание.');
+W('trabajo','Впишите по-испански: «домашнее задание»','',['los deberes','deberes','la tarea','tarea','las tareas','tareas'],
+  'В Испании — <b>los deberes</b> (всегда во мн. ч.), в Латинской Америке — <i>la tarea</i>.');
+
+// --- Досуг ---
+C('ocio','Mi hermano ___ la guitarra muy bien.','Мой брат очень хорошо играет на гитаре.',['toca','juega','hace'],
+  'На музыкальных инструментах «играют» глаголом <b>tocar</b>: <i>tocar la guitarra, el piano</i>. <i>Jugar</i> — играть в игры и спорт: <i>jugar al fútbol</i>.');
+C('ocio','Los sábados ___ con mis amigos en el centro.','По субботам я встречаюсь с друзьями в центре.',['quedo','encuentro','reúno'],
+  'В Испании «встречаться, договариваться о встрече» — <b>quedar</b>: <i>quedo con mis amigos, ¿quedamos a las ocho?</i> <i>Encontrar</i> без <i>me</i> — «найти».');
+C('ocio','Para ver el concierto necesitas una ___.','Чтобы попасть на концерт, нужен билет.',['entrada','salida','tarjeta'],
+  'Билет в кино, театр, на концерт или в музей — <b>la entrada</b>. Билет на транспорт — <i>el billete</i>. <i>La salida</i> — выход.');
+C('ocio','Что значит «dar un paseo»?','',['прогуляться','сделать подарок','съездить в отпуск'],
+  '<b>dar un paseo</b> — прогуляться (также <i>pasear</i>). Подарить — <i>regalar</i>, ехать в отпуск — <i>ir de vacaciones</i>.');
+C('ocio','Me encanta ___: tengo muchos cuadros míos en casa.','Обожаю писать картины: у меня дома много моих картин.',['pintar','cantar','escribir'],
+  '<b>pintar</b> — рисовать красками, писать картины (<i>el cuadro</i> — картина). <i>Dibujar</i> — рисовать карандашом, <i>el dibujo</i> — рисунок.');
+C('ocio',ODD,'',['la receta','el cine','la serie','la película'],
+  '<b>La receta</b> — рецепт. Остальное — экранные развлечения: кино, сериал, фильм.');
+W('ocio','Впишите по-испански: «танцевать»','',['bailar'],
+  '<b>bailar</b> — танцевать (<i>el baile</i> — танец).');
+
+// --- Характер ---
+C('caracter','Nunca quiere pagar nada, es muy ___.','Он никогда не хочет ни за что платить, он очень жадный.',['tacaño','generoso','tímido'],
+  '<b>tacaño</b> — жадный, скупой. Противоположность — <i>generoso</i> (щедрый). <i>Tímido</i> — застенчивый.');
+C('caracter','Mi compañero no hace nada en todo el día. ¡Es muy ___!','Мой коллега целый день ничего не делает. Он такой ленивый!',['vago','trabajador','serio'],
+  '<b>vago</b> — ленивый (также <i>perezoso</i>). <i>Trabajador</i> — трудолюбивый, <i>serio</i> — серьёзный.');
+C('caracter','Что значит «estar listo»?','',['быть готовым','быть умным','быть быстрым'],
+  'Смысл зависит от глагола: <b>estar listo</b> — быть готовым (<i>¿Estás listo? Nos vamos</i>), <i>ser listo</i> — быть умным, сообразительным.');
+C('caracter','La película es muy ___, me duermo.','Фильм очень скучный, я засыпаю.',['aburrida','divertida','interesante'],
+  '<b>aburrido</b> — скучный; с <i>la película</i> — <b>aburrida</b>. Кстати: <i>ser aburrido</i> — быть скучным, <i>estar aburrido</i> — скучать.');
+C('caracter','Mañana tengo un examen y estoy muy ___: no puedo dormir.','Завтра у меня экзамен, и я очень нервничаю: не могу уснуть.',['nervioso','tranquilo','contento'],
+  '<b>nervioso</b> — нервный, взволнованный. <i>Tranquilo</i> — спокойный, <i>contento</i> — довольный.');
+C('caracter','Как по-испански «грустный»?','',['triste','enfadado','cansado'],
+  '<b>triste</b> — грустный (<i>estar triste</i>). <i>Enfadado</i> — сердитый, <i>cansado</i> — уставший.');
+W('caracter','Впишите антоним к слову «simpático»','',['antipático'],
+  '<b>antipático</b> — неприятный, несимпатичный. Ударение на <i>-pá-</i>.');
+
+// --- Ресторан ---
+C('restaurante','Camarero, ¿nos trae la ___, por favor? Queremos pagar.','Официант, принесите, пожалуйста, счёт. Мы хотим заплатить.',['cuenta','carta','propina'],
+  '<b>la cuenta</b> — счёт. <i>La carta</i> — меню (и письмо), <i>la propina</i> — чаевые.');
+C('restaurante','Para comer la sopa necesito ___.','Чтобы есть суп, мне нужна ложка.',['una cuchara','un tenedor','un cuchillo'],
+  '<b>la cuchara</b> — ложка, <i>el tenedor</i> — вилка, <i>el cuchillo</i> — нож. <i>La cucharilla</i> — чайная ложка.');
+C('restaurante','Что значит «la propina»?','',['чаевые','скидка','закуска'],
+  '<b>la propina</b> — чаевые. Скидка — <i>el descuento</i>, закуска — <i>el aperitivo</i> или <i>la tapa</i>.');
+C('restaurante','De ___ quiero un flan.','На десерт я хочу флан (карамельный пудинг).',['postre','primero','bebida'],
+  '<b>de postre</b> — на десерт. <i>De primero</i> — на первое, <i>de segundo</i> — на второе, <i>de beber</i> — из напитков.');
+C('restaurante','Что говорят перед едой, как «Приятного аппетита»?','',['¡Que aproveche!','¡Salud!','¡Buen viaje!'],
+  '<b>¡Que aproveche!</b> (или <i>¡Buen provecho!</i>) — «Приятного аппетита!». <i>¡Salud!</i> — «Будем здоровы!» (тост) или «Будь здоров!» после чиха.');
+C('restaurante','Esta paella está muy ___. ¡Me encanta!','Эта паэлья очень вкусная. Обожаю её!',['rica','cara','llena'],
+  '<b>estar rico</b> — быть вкусным (о еде): <i>la paella está rica</i>. А <i>ser rico</i> — быть богатым. Синонимы: <i>sabroso, delicioso</i>.');
+W('restaurante','Впишите по-испански: «вилка»','',['el tenedor','tenedor'],
+  '<b>el tenedor</b> — вилка (мужской род!).');
+
+// --- Природа ---
+C('naturaleza','Что значит «el bosque»?','',['лес','поле','сад'],
+  '<b>el bosque</b> — лес. Поле — <i>el campo</i>, сад — <i>el jardín</i>.');
+C('naturaleza','Como pez en el ___.','Как рыба в воде (идиома).',['agua','mar','río'],
+  'Идиома <b>como pez en el agua</b> — «как рыба в воде», то есть уверенно и свободно. Обратите внимание: живая рыба — <i>el pez</i>, а не <i>el pescado</i>.');
+C('naturaleza','Как по-испански «лошадь»?','',['el caballo','el cabello','la cabra'],
+  '<b>el caballo</b> — лошадь. <i>El cabello</i> — волосы (книжн.), <i>la cabra</i> — коза.');
+C('naturaleza',ODD,'',['el árbol','el lobo','el oso','el pájaro'],
+  '<b>El árbol</b> — дерево. Остальные — животные: волк, медведь, птица.');
+C('naturaleza','Una ___ es tierra rodeada de agua.','Остров — это земля, окружённая водой.',['isla','playa','orilla'],
+  '<b>la isla</b> — остров (<i>las islas Canarias</i>). <i>La playa</i> — пляж, <i>la orilla</i> — берег.');
+C('naturaleza','El ___ de Madrid se llama Manzanares.','Река в Мадриде называется Мансанарес.',['río','lago','mar'],
+  '<b>el río</b> — река. <i>El lago</i> — озеро, <i>el mar</i> — море.');
+W('naturaleza','Впишите по-испански: «птица»','',['el pájaro','pájaro','el ave','ave'],
+  '<b>el pájaro</b> — птица (обычно небольшая). Более общее слово — <i>el ave</i>: оно женского рода, но с артиклем <i>el</i>, как <i>el agua</i>.');
+
+// --- Технологии ---
+C('tecnologia','No me queda batería, tengo que ___ el móvil.','У меня села батарея, нужно зарядить телефон.',['cargar','llenar','descargar'],
+  '<b>cargar</b> — заряжать (и «загружать»). <i>Descargar</i> — скачивать; <i>se me ha descargado el móvil</i> — «у меня сел телефон». <i>Llenar</i> — наполнять.');
+C('tecnologia','Что значит «la contraseña»?','',['пароль','логин','подпись'],
+  '<b>la contraseña</b> — пароль. Логин — <i>el usuario</i>, подпись — <i>la firma</i>.');
+C('tecnologia','Как в Испании называют компьютер?','',['el ordenador','el portátil','el teclado'],
+  'В Испании компьютер — <b>el ordenador</b>, в Латинской Америке — <i>la computadora</i>. <i>El portátil</i> — ноутбук, <i>el teclado</i> — клавиатура.');
+C('tecnologia','Te ___ un mensaje esta tarde.','Я отправлю тебе сообщение сегодня вечером.',['mando','llevo','traigo'],
+  '<b>mandar</b> или <i>enviar</i> — отправлять. В разговорной речи настоящее время часто заменяет будущее: <i>te mando</i> — «отправлю». <i>Llevar</i> — нести, <i>traer</i> — приносить.');
+C('tecnologia','Hablamos por teléfono una hora y después ___.','Мы проговорили по телефону час, а потом я повесил трубку.',['colgué','cerré','apagué'],
+  '<b>colgar</b> — повесить трубку (букв. «повесить»). <i>Apagar</i> — выключить, <i>cerrar</i> — закрыть.');
+C('tecnologia',ODD,'',['la cuchara','la pantalla','el teclado','el ratón'],
+  '<b>La cuchara</b> — ложка. Остальное — части компьютера: экран, клавиатура и мышь (да, компьютерная мышь — тоже <i>el ratón</i>).');
+W('tecnologia','Впишите по-испански: «мобильный телефон»','',['el móvil','móvil','el teléfono móvil','teléfono móvil','el celular','celular'],
+  'В Испании — <b>el móvil</b>, в Латинской Америке — <i>el celular</i>.');
+
+// --- Ложные друзья ---
+C('falsos-amigos','—¿Cuál es tu ___? —García.','— Какая у тебя фамилия? — Гарсия.',['apellido','familia','nombre'],
+  'Ловушка для русскоговорящих: <i>la familia</i> — это «семья». «Фамилия» по-испански — <b>el apellido</b>. У испанцев обычно две фамилии: отца и матери. <i>El nombre</i> — имя.');
+C('falsos-amigos','He recibido una ___ de mi abuela: me escribe desde Valencia.','Я получил письмо от бабушки: она пишет мне из Валенсии.',['carta','mapa','cartera'],
+  '<b>la carta</b> — письмо (и меню в ресторане), а не «карта». Географическая карта — <i>el mapa</i> (мужской род!). <i>La cartera</i> — кошелёк или портфель.');
+C('falsos-amigos','Что значит «el éxito»?','',['успех','выход','отъезд'],
+  '<b>el éxito</b> — успех (<i>¡Mucho éxito!</i> — «Удачи!»). Выход — <i>la salida</i>, отъезд — <i>la partida</i>.');
+C('falsos-amigos','Estoy ___: tengo tos y mocos.','Я простужен: у меня кашель и насморк.',['constipado','estreñido','embarazado'],
+  '<b>constipado</b> — простуженный (= <i>resfriado</i>), а вовсе не «страдающий запором»: это <i>estreñido</i>. А <i>embarazada</i> — «беременная».');
+C('falsos-amigos','Что значит «la carpeta»?','',['папка','ковёр','сумка'],
+  '<b>la carpeta</b> — папка для бумаг (и папка на компьютере). Ковёр — <i>la alfombra</i>, сумка — <i>el bolso</i>.');
+C('falsos-amigos','María está ___: va a tener un bebé en mayo.','Мария беременна: в мае у неё родится ребёнок.',['embarazada','avergonzada','casada'],
+  '<b>embarazada</b> — беременная. Похоже на английское <i>embarrassed</i>, но смысл совсем другой! «Смущённая» — <i>avergonzada</i>, «замужем» — <i>casada</i>.');
+C('falsos-amigos','—¿Vienes a cenar el viernes? —Lo siento, tengo un compromiso. Что это значит?','',['У меня другие планы (договорённость)','Я иду на компромисс','У меня есть сомнения'],
+  '<b>Tengo un compromiso</b> — «у меня договорённость / другие планы», вежливый отказ. Основные значения <i>compromiso</i> — обязательство, договорённость, помолвка; смысл «компромисс» встречается реже (<i>llegar a un compromiso</i>).');
+W('falsos-amigos','Впишите по-испански: «выход»','',['la salida','salida'],
+  '<b>la salida</b> — выход (на табличках: <i>SALIDA</i>). Не путайте с <i>el éxito</i> — «успех».');
+
+/* ===================== ЛОГИКА ===================== */
+const TOPIC = Object.fromEntries(TOPICS.map(t => [t.id, t]));
+const QBYID = {};
+const counters = {};
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+QUESTIONS.forEach(q => {
+  counters[q.t] = (counters[q.t] || 0) + 1;
+  q.id = q.t + '-' + counters[q.t];
+  q.lvl = TOPIC[q.t].lvl;
+  if(q.type === 'choice'){ q.answer = q.o[0]; q.opts = shuffle(q.o.slice()); }
+  else { q.answer = q.a[0]; }
+  QBYID[q.id] = q;
+});
+
+const KEY = 'es-vocab-a1a2-v1';
+const THEME_KEY = 'es-grammar-theme';
+const state = {answers:{}, level:'all', topic:'all', view:'topics', revealAll:false};
+try {
+  const saved = JSON.parse(localStorage.getItem(KEY) || 'null');
+  if(saved && typeof saved === 'object'){
+    if(saved.answers && typeof saved.answers === 'object') state.answers = saved.answers;
+    if(['all','A1','A2'].includes(saved.level)) state.level = saved.level;
+    if(saved.topic === 'all' || TOPIC[saved.topic]) state.topic = saved.topic;
+    if(['topics','mixed'].includes(saved.view)) state.view = saved.view;
+    state.revealAll = !!saved.revealAll;
+  }
+} catch(e) {}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {} }
+
+try { const th = localStorage.getItem(THEME_KEY); if(th === 'light' || th === 'dark') document.documentElement.dataset.theme = th; } catch(e) {}
+
+let mixOrder = shuffle(QUESTIONS.map(q => q.id));
+
+const $ = id => document.getElementById(id);
+const quiz = $('quiz');
+function el(tag, cls){ const e = document.createElement(tag); if(cls) e.className = cls; return e; }
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function plural(n, one, few, many){ const m10=n%10, m100=n%100; if(m10===1&&m100!==11) return one; if(m10>=2&&m10<=4&&(m100<12||m100>14)) return few; return many; }
+
+function inLevel(q){ return state.level === 'all' || q.lvl === state.level; }
+function filtered(){ return QUESTIONS.filter(q => inLevel(q) && (state.topic === 'all' || q.t === state.topic)); }
+
+/* ---- Карточка вопроса ---- */
+function renderCard(q, num){
+  const st = state.answers[q.id];
+  const card = el('article', 'card');
+  card.dataset.id = q.id; card.dataset.num = num;
+  if(st){ card.classList.add('done', st.s === 'correct' ? 'is-correct' : st.s === 'revealed' ? 'is-revealed' : 'is-wrong'); }
+
+  const head = el('div', 'card-head');
+  head.innerHTML = '<span class="num">' + num + '</span><span class="chip ' + q.lvl + '">' + q.lvl + '</span>' +
+    (state.view === 'mixed' ? '<span class="tname">' + esc(TOPIC[q.t].name) + '</span>' : '') +
+    '<span class="qtype">' + (q.type === 'input' ? 'впишите ответ' : 'выберите ответ') + '</span>';
+  card.appendChild(head);
+
+  const p = el('p', 'q');
+  const parts = q.q.split('___');
+  parts.forEach((part, i) => {
+    p.appendChild(document.createTextNode(part));
+    if(i < parts.length - 1){
+      const b = el('span', 'blank');
+      b.innerHTML = '<span class="b-empty">&nbsp;</span>';
+      const f = el('span', 'b-fill'); f.textContent = q.answer;
+      b.appendChild(f); p.appendChild(b);
+    }
+  });
+  card.appendChild(p);
+
+  if(q.type === 'choice'){
+    const box = el('div', 'opts');
+    q.opts.forEach(o => {
+      const b = el('button', 'opt'); b.type = 'button'; b.textContent = o; b.dataset.v = o;
+      if(o === q.answer) b.classList.add('is-answer');
+      if(st){
+        b.disabled = true;
+        if(o === q.answer) b.classList.add('correct');
+        else if(st.v === o) b.classList.add('wrong');
+        else b.classList.add('dim');
+      }
+      box.appendChild(b);
+    });
+    card.appendChild(box);
+  } else {
+    const box = el('div', 'inp');
+    const input = document.createElement('input');
+    input.type = 'text'; input.autocomplete = 'off'; input.spellcheck = false;
+    input.setAttribute('autocapitalize', 'off'); input.setAttribute('autocorrect', 'off');
+    input.setAttribute('aria-label', 'Ваш ответ'); input.placeholder = 'Ваш ответ…';
+    const btn = el('button', 'btn check'); btn.type = 'button'; btn.textContent = 'Проверить';
+    if(st){
+      input.value = st.v || ''; input.disabled = true; btn.disabled = true;
+      const cls = {correct:'ok', wrong:'bad', almost:'almost'}[st.s]; if(cls) input.classList.add(cls);
+    }
+    box.appendChild(input); box.appendChild(btn);
+    card.appendChild(box);
+    if(!st){
+      const acc = el('div', 'accents');
+      ['á','é','í','ó','ú','ñ','ü'].forEach(c => {
+        const a = el('button', 'acc'); a.type = 'button'; a.textContent = c; a.dataset.c = c;
+        a.setAttribute('aria-label', 'Вставить ' + c); acc.appendChild(a);
+      });
+      card.appendChild(acc);
+    }
+  }
+
+  const ans = el('div', 'answer');
+  let html = '';
+  if(st){
+    const v = {
+      correct: ['ok', '✓ ¡Correcto! Верно.'],
+      wrong: ['bad', '✗ Неверно.'],
+      almost: ['warn', '≈ Почти! Слово верное, но проверьте ударения (тильды).'],
+      revealed: ['warn', 'Ответ показан.']
+    }[st.s];
+    if(v) html += '<div class="verdict ' + v[0] + '">' + v[1] + '</div>';
+  }
+  html += '<div class="right">Правильный ответ: <b>' + esc(q.answer) + '</b></div>';
+  if(q.tr) html += '<div class="tr">' + esc(q.tr) + '</div>';
+  html += '<div class="ex">' + q.ex + '</div>';
+  ans.innerHTML = html;
+  card.appendChild(ans);
+
+  const foot = el('div', 'card-foot');
+  foot.innerHTML = '<button type="button" class="ghost reveal">Показать ответ</button><button type="button" class="ghost retry">↺ Ещё раз</button>';
+  card.appendChild(foot);
+  return card;
+}
+
+/* ---- Рендер списка ---- */
+function render(){
+  document.body.classList.toggle('view-topics', state.view === 'topics');
+  document.body.classList.toggle('reveal-all', state.revealAll);
+  quiz.innerHTML = '';
+  const list = filtered();
+  if(!list.length){ quiz.innerHTML = '<p class="empty">Нет вопросов для выбранного фильтра.</p>'; updateStats(); return; }
+  let n = 0;
+  if(state.view === 'topics'){
+    TOPICS.forEach(t => {
+      const qs = list.filter(q => q.t === t.id);
+      if(!qs.length) return;
+      const sec = el('section', 'topic'); sec.id = 'topic-' + t.id;
+      sec.innerHTML = '<div class="topic-head"><span class="chip ' + t.lvl + '">' + t.lvl + '</span><h2>' + esc(t.name) + '</h2></div>' +
+        '<details class="rule"' + (state.topic === t.id ? ' open' : '') + '><summary>Словарик темы</summary><div class="rule-body">' + t.rule + '</div></details>';
+      const grid = el('div', 'cards');
+      qs.forEach(q => grid.appendChild(renderCard(q, ++n)));
+      sec.appendChild(grid);
+      quiz.appendChild(sec);
+    });
+  } else {
+    const set = new Set(list.map(q => q.id));
+    const grid = el('div', 'cards'); grid.style.marginTop = '22px';
+    mixOrder.filter(id => set.has(id)).forEach(id => grid.appendChild(renderCard(QBYID[id], ++n)));
+    quiz.appendChild(grid);
+  }
+  updateStats();
+}
+
+function refreshCard(card, focusSel){
+  const q = QBYID[card.dataset.id];
+  const nc = renderCard(q, +card.dataset.num);
+  card.replaceWith(nc);
+  const f = nc.querySelector(focusSel);
+  if(f) f.focus({preventScroll:true});
+  updateStats();
+}
+
+function setAnswer(card, ans){
+  state.answers[card.dataset.id] = ans;
+  save();
+  refreshCard(card, '.retry');
+}
+
+const norm = s => s.toLowerCase().replace(/[¿?¡!.,;:«»"]/g, ' ').replace(/\s+/g, ' ').trim();
+const plain = s => norm(s).normalize('NFD').replace(/[̀-ͯ]/g, '');
+
+function checkInput(card){
+  const q = QBYID[card.dataset.id];
+  const input = card.querySelector('.inp input');
+  const v = input.value.trim();
+  if(!v){ input.classList.remove('shake'); void input.offsetWidth; input.classList.add('shake'); input.focus(); return; }
+  let s = 'wrong';
+  if(q.a.some(a => norm(a) === norm(v))) s = 'correct';
+  else if(q.a.some(a => plain(a) === plain(v))) s = 'almost';
+  setAnswer(card, {s, v});
+}
+
+function insertChar(input, c){
+  if(!input || input.disabled) return;
+  const st = input.selectionStart ?? input.value.length, en = input.selectionEnd ?? input.value.length;
+  input.value = input.value.slice(0, st) + c + input.value.slice(en);
+  input.focus();
+  input.setSelectionRange(st + c.length, st + c.length);
+}
+
+quiz.addEventListener('mousedown', e => { if(e.target.closest('.acc')) e.preventDefault(); });
+quiz.addEventListener('click', e => {
+  const card = e.target.closest('.card'); if(!card) return;
+  const q = QBYID[card.dataset.id];
+  const opt = e.target.closest('.opt');
+  if(opt){ if(!opt.disabled) setAnswer(card, {s: opt.dataset.v === q.answer ? 'correct' : 'wrong', v: opt.dataset.v}); return; }
+  if(e.target.closest('.check')){ checkInput(card); return; }
+  const acc = e.target.closest('.acc');
+  if(acc){ insertChar(card.querySelector('.inp input'), acc.dataset.c); return; }
+  if(e.target.closest('.reveal')){ setAnswer(card, {s:'revealed'}); return; }
+  if(e.target.closest('.retry')){
+    delete state.answers[q.id]; save();
+    refreshCard(card, q.type === 'input' ? '.inp input' : '.opt');
+  }
+});
+quiz.addEventListener('keydown', e => {
+  if(e.key === 'Enter' && e.target.matches('.inp input')){ e.preventDefault(); checkInput(e.target.closest('.card')); }
+});
+
+/* ---- Статистика и итоги ---- */
+function tally(qs){
+  let ok = 0, bad = 0, rev = 0;
+  qs.forEach(q => { const st = state.answers[q.id]; if(!st) return; if(st.s === 'correct') ok++; else if(st.s === 'revealed') rev++; else bad++; });
+  return {ok, bad, rev, ans: ok + bad + rev, tot: qs.length};
+}
+const pct = (a, b) => b ? (a / b * 100) : 0;
+
+function updateStats(){
+  const r = tally(filtered());
+  $('sAns').textContent = r.ans; $('sTot').textContent = r.tot;
+  $('sOk').textContent = r.ok; $('sBad').textContent = r.bad; $('sRev').textContent = r.rev;
+  $('pOk').style.width = pct(r.ok, r.tot) + '%';
+  $('pBad').style.width = pct(r.bad, r.tot) + '%';
+  $('pRev').style.width = pct(r.rev, r.tot) + '%';
+  $('prog').setAttribute('aria-valuenow', Math.round(pct(r.ans, r.tot)));
+  renderResults();
+}
+
+function renderResults(){
+  const pool = QUESTIONS.filter(inLevel);
+  const r = tally(pool);
+  const lvlName = state.level === 'all' ? 'A1–A2' : state.level;
+  if(!r.ans){
+    $('summary').innerHTML = 'Уровень <b>' + lvlName + '</b>: пока нет ответов. Всего ' + r.tot + ' ' + plural(r.tot,'вопрос','вопроса','вопросов') + '.';
+    $('advice').textContent = '';
+  } else {
+    const score = Math.round(pct(r.ok, r.ans));
+    $('summary').innerHTML = 'Уровень <b>' + lvlName + '</b>: отвечено <b>' + r.ans + '</b> из ' + r.tot + ', верно <b>' + r.ok + '</b> (' + score + '%).';
+    const weak = TOPICS.filter(t => inLevel({lvl:t.lvl})).map(t => {
+      const x = tally(QUESTIONS.filter(q => q.t === t.id)); return {t, miss: x.bad + x.rev, ratio: x.ans ? (x.bad + x.rev) / x.ans : 0};
+    }).filter(w => w.miss > 0).sort((a, b) => b.ratio - a.ratio || b.miss - a.miss);
+    if(weak.length) $('advice').innerHTML = 'Стоит повторить: ' + weak.slice(0, 5).map(w => '<b>' + esc(w.t.name) + '</b>').join(', ') + '.';
+    else if(r.ans === r.tot) $('advice').innerHTML = '¡Excelente! Все ответы верные — отличная работа.';
+    else $('advice').textContent = 'Пока без ошибок — так держать!';
+  }
+  const rows = $('trows'); rows.innerHTML = '';
+  TOPICS.filter(t => inLevel({lvl:t.lvl})).forEach(t => {
+    const x = tally(QUESTIONS.filter(q => q.t === t.id));
+    const b = el('button', 'trow'); b.type = 'button'; b.dataset.topic = t.id;
+    b.title = 'Перейти к теме «' + t.name + '»';
+    b.innerHTML = '<span class="chip ' + t.lvl + '">' + t.lvl + '</span><span class="tn">' + esc(t.name) + '</span>' +
+      '<span class="tbar"><i class="ok" style="width:' + pct(x.ok, x.tot) + '%"></i><i class="bad" style="width:' + pct(x.bad, x.tot) + '%"></i><i class="rev" style="width:' + pct(x.rev, x.tot) + '%"></i></span>' +
+      '<span class="tnum">' + x.ok + '/' + x.tot + '</span>';
+    rows.appendChild(b);
+  });
+}
+
+$('trows').addEventListener('click', e => {
+  const b = e.target.closest('.trow'); if(!b) return;
+  state.topic = b.dataset.topic; state.view = 'topics'; save();
+  syncControls(); render();
+  const target = $('topic-' + b.dataset.topic);
+  (target || quiz).scrollIntoView({behavior:'smooth', block:'start'});
+});
+
+/* ---- Управление ---- */
+function buildTopicSelect(){
+  const sel = $('topicSel'); sel.innerHTML = '';
+  const all = document.createElement('option'); all.value = 'all'; all.textContent = 'Все темы'; sel.appendChild(all);
+  ['A1','A2'].forEach(lvl => {
+    if(state.level !== 'all' && state.level !== lvl) return;
+    const g = document.createElement('optgroup'); g.label = 'Уровень ' + lvl;
+    TOPICS.filter(t => t.lvl === lvl).forEach(t => {
+      const o = document.createElement('option'); o.value = t.id;
+      o.textContent = t.name + ' (' + (counters[t.id] || 0) + ')';
+      g.appendChild(o);
+    });
+    sel.appendChild(g);
+  });
+  sel.value = state.topic;
+}
+function syncControls(){
+  if(state.topic !== 'all' && !inLevel({lvl: TOPIC[state.topic].lvl})) state.topic = 'all';
+  document.querySelectorAll('#levelSeg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.level === state.level));
+  document.querySelectorAll('#viewSeg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === state.view));
+  $('revealAll').checked = state.revealAll;
+  buildTopicSelect();
+}
+
+$('levelSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  state.level = b.dataset.level; save(); syncControls(); render();
+});
+$('topicSel').addEventListener('change', e => { state.topic = e.target.value; save(); render(); });
+$('viewSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  if(b.dataset.view === 'mixed' && state.view !== 'mixed') mixOrder = shuffle(QUESTIONS.map(q => q.id));
+  state.view = b.dataset.view; save(); syncControls(); render();
+});
+$('shuffleBtn').addEventListener('click', () => {
+  mixOrder = shuffle(QUESTIONS.map(q => q.id));
+  QUESTIONS.forEach(q => { if(q.opts) shuffle(q.opts); });
+  render();
+});
+$('revealAll').addEventListener('change', e => { state.revealAll = e.target.checked; save(); render(); });
+$('resetBtn').addEventListener('click', () => {
+  if(!confirm('Сбросить все ответы? Прогресс будет удалён.')) return;
+  state.answers = {}; save();
+  QUESTIONS.forEach(q => { if(q.opts) shuffle(q.opts); });
+  render();
+});
+$('themeBtn').addEventListener('click', () => {
+  const root = document.documentElement;
+  const cur = root.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  root.dataset.theme = next;
+  try { localStorage.setItem(THEME_KEY, next); } catch(e) {}
+});
+
+const nA1 = QUESTIONS.filter(q => q.lvl === 'A1').length, nA2 = QUESTIONS.length - nA1;
+$('meta').innerHTML = '<b>' + QUESTIONS.length + '</b> ' + plural(QUESTIONS.length,'вопрос','вопроса','вопросов') +
+  ' · <b>' + TOPICS.length + '</b> ' + plural(TOPICS.length,'тема','темы','тем') +
+  ' · A1: ' + nA1 + ', A2: ' + nA2;
+
+syncControls();
+render();
+</script>
+</body>
+</html>
